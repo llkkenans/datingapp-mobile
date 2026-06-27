@@ -13,6 +13,9 @@ import '../../features/match/text_match/presentation/anonymous_chat_screen.dart'
 import '../../features/match/text_match/presentation/match_rating_screen.dart';
 import '../../features/match/text_match/presentation/match_success_screen.dart';
 import '../../features/match/providers/text_match_notifier.dart';
+import '../../features/match/providers/voice_match_notifier.dart';
+import '../../features/match/voice_match/presentation/voice_call_screen.dart';
+import '../../features/match/voice_match/presentation/voice_match_success_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'auth_routing.dart';
 import '../network/dio_client.dart';
@@ -137,6 +140,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final mutualLike = state.extra as TextMatchMutualLike;
           return MatchSuccessScreen(mutualLike: mutualLike);
+        },
+      ),
+
+      // ── Voice match flow ───────────────────────────────────────────────────
+      GoRoute(
+        path: '/match/voice/session/:sessionId',
+        name: 'voice-match-session',
+        builder: (context, state) {
+          final session = state.extra as VoiceMatchSessionActive;
+          return VoiceCallScreen(
+            sessionId: session.sessionId,
+            roomId: session.roomId,
+            zegoToken: session.zegoToken,
+            expiresAt: session.expiresAt,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/match/voice/rating',
+        name: 'voice-match-rating',
+        builder: (context, state) => MatchRatingScreen(
+          sessionId: state.extra as String? ?? '',
+          isVoiceMatch: true,
+        ),
+      ),
+      GoRoute(
+        path: '/match/voice/success',
+        name: 'voice-match-success',
+        builder: (context, state) {
+          final mutualLike = state.extra as VoiceMatchMutualLike;
+          return VoiceMatchSuccessScreen(mutualLike: mutualLike);
         },
       ),
 

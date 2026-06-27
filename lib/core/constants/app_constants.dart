@@ -6,4 +6,5 @@ class AppConstants {
   static const String supabaseAnonKey = 'SUPABASE_ANON_KEY';
   static const String backendBaseUrlKey = 'BACKEND_BASE_URL';
   static const String jwtStorageKey = 'auth_jwt';
+  static const String zegoAppIdKey = 'ZEGO_APP_ID';
 }

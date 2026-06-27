@@ -2,22 +2,62 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/text_match_notifier.dart';
+import '../providers/voice_match_notifier.dart';
 
 class MatchTabScreen extends ConsumerWidget {
   const MatchTabScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(textMatchNotifierProvider);
-    final notifier = ref.read(textMatchNotifierProvider.notifier);
+    final textState = ref.watch(textMatchNotifierProvider);
+    final textNotifier = ref.read(textMatchNotifierProvider.notifier);
+    final voiceState = ref.watch(voiceMatchNotifierProvider);
+    final voiceNotifier = ref.read(voiceMatchNotifierProvider.notifier);
 
-    // Navigate to session screen when match is found
     ref.listen<TextMatchState>(textMatchNotifierProvider, (prev, next) {
       if (prev is! TextMatchSearching) return;
       if (next is TextMatchSessionActive) {
         context.push('/match/text/session/${next.sessionId}');
       }
     });
+
+    ref.listen<VoiceMatchState>(voiceMatchNotifierProvider, (prev, next) {
+      if (prev is! VoiceMatchSearching) return;
+      if (next is VoiceMatchSessionActive) {
+        context.push(
+          '/match/voice/session/${next.sessionId}',
+          extra: next,
+        );
+      }
+    });
+
+    Widget body;
+    if (textState is TextMatchSearching) {
+      body = _SearchingView(
+        label: 'Finding a text match...',
+        onCancel: textNotifier.cancelSearch,
+      );
+    } else if (textState is TextMatchError) {
+      body = _ErrorView(
+        message: textState.message,
+        onDismiss: textNotifier.reset,
+      );
+    } else if (voiceState is VoiceMatchSearching) {
+      body = _SearchingView(
+        label: 'Finding a voice match...',
+        onCancel: voiceNotifier.cancelSearch,
+      );
+    } else if (voiceState is VoiceMatchError) {
+      body = _ErrorView(
+        message: voiceState.message,
+        onDismiss: voiceNotifier.reset,
+      );
+    } else {
+      body = _IdleView(
+        onStartTextMatch: textNotifier.startSearch,
+        onStartVoiceMatch: voiceNotifier.startSearch,
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
@@ -27,14 +67,7 @@ class MatchTabScreen extends ConsumerWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),
-      body: switch (state) {
-        TextMatchSearching() => _SearchingView(onCancel: notifier.cancelSearch),
-        TextMatchError(:final message) => _ErrorView(
-            message: message,
-            onDismiss: notifier.reset,
-          ),
-        _ => _IdleView(onStartTextMatch: notifier.startSearch),
-      },
+      body: body,
     );
   }
 }
@@ -42,8 +75,12 @@ class MatchTabScreen extends ConsumerWidget {
 // ─── Idle view ────────────────────────────────────────────────────────────────
 
 class _IdleView extends StatelessWidget {
-  const _IdleView({required this.onStartTextMatch});
+  const _IdleView({
+    required this.onStartTextMatch,
+    required this.onStartVoiceMatch,
+  });
   final Future<void> Function() onStartTextMatch;
+  final Future<void> Function() onStartVoiceMatch;
 
   @override
   Widget build(BuildContext context) {
@@ -79,8 +116,7 @@ class _IdleView extends StatelessWidget {
             icon: Icons.mic_none_rounded,
             title: 'Voice Match',
             description: 'Anonymous 3-minute voice call',
-            onTap: null,
-            comingSoon: true,
+            onTap: onStartVoiceMatch,
           ),
         ],
       ),
@@ -94,87 +130,59 @@ class _MatchTypeCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.onTap,
-    this.comingSoon = false,
   });
 
   final IconData icon;
   final String title;
   final String description;
-  final Future<void> Function()? onTap;
-  final bool comingSoon;
+  final Future<void> Function() onTap;
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
-    return Opacity(
-      opacity: comingSoon ? 0.45 : 1.0,
-      child: GestureDetector(
-        onTap: onTap != null ? () => onTap!() : null,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Color.fromRGBO(108, 99, 255, 0.3)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Color.fromRGBO(108, 99, 255, 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: primary, size: 26),
+    return GestureDetector(
+      onTap: () => onTap(),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Color.fromRGBO(108, 99, 255, 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(108, 99, 255, 0.15),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        if (comingSoon) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white12,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Soon',
-                              style: TextStyle(
-                                  fontSize: 10, color: Colors.white54),
-                            ),
-                          ),
-                        ],
-                      ],
+              child: Icon(icon, color: primary, size: 26),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      description,
-                      style: const TextStyle(
-                          fontSize: 13, color: Colors.white54),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: const TextStyle(fontSize: 13, color: Colors.white54),
+                  ),
+                ],
               ),
-              if (!comingSoon)
-                Icon(Icons.arrow_forward_ios_rounded,
-                    size: 16, color: primary),
-            ],
-          ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: primary),
+          ],
         ),
       ),
     );
@@ -184,8 +192,9 @@ class _MatchTypeCard extends StatelessWidget {
 // ─── Searching view ───────────────────────────────────────────────────────────
 
 class _SearchingView extends StatefulWidget {
-  const _SearchingView({required this.onCancel});
+  const _SearchingView({required this.onCancel, required this.label});
   final Future<void> Function() onCancel;
+  final String label;
 
   @override
   State<_SearchingView> createState() => _SearchingViewState();
@@ -255,9 +264,9 @@ class _SearchingViewState extends State<_SearchingView>
             },
           ),
           const SizedBox(height: 40),
-          const Text(
-            'Searching for a match...',
-            style: TextStyle(
+          Text(
+            widget.label,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Colors.white,

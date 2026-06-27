@@ -4,10 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/match_repository.dart';
 import '../../providers/text_match_notifier.dart';
+import '../../providers/voice_match_notifier.dart';
 
 class MatchRatingScreen extends ConsumerStatefulWidget {
-  const MatchRatingScreen({super.key, required this.sessionId});
+  const MatchRatingScreen({
+    super.key,
+    required this.sessionId,
+    this.isVoiceMatch = false,
+  });
   final String sessionId;
+  final bool isVoiceMatch;
 
   @override
   ConsumerState<MatchRatingScreen> createState() => _MatchRatingScreenState();
@@ -123,7 +129,11 @@ class _MatchRatingScreenState extends ConsumerState<MatchRatingScreen> {
   }
 
   void _done() {
-    ref.read(textMatchNotifierProvider.notifier).reset();
+    if (widget.isVoiceMatch) {
+      ref.read(voiceMatchNotifierProvider.notifier).reset();
+    } else {
+      ref.read(textMatchNotifierProvider.notifier).reset();
+    }
     context.go('/match');
   }
 }
