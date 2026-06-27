@@ -1,0 +1,57 @@
+name: datingapp_mobile
+description: "A production-grade social dating app. Talk first. Reveal later."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^15.1.2
+
+  # HTTP client
+  dio: ^5.8.0+1
+
+  # Secure storage for JWT
+  flutter_secure_storage: ^9.2.4
+
+  # Supabase Auth SDK (login/signup/session client-side)
+  supabase_flutter: ^2.9.1
+
+  # WebSocket client for NestJS /match and /messages namespaces
+  socket_io_client: ^3.0.2
+
+  # Image display with caching
+  cached_network_image: ^3.4.1
+
+  # Photo upload (avatar/feed photos)
+  image_picker: ^1.1.2
+
+  # .env loading for SUPABASE_URL and SUPABASE_ANON_KEY
+  flutter_dotenv: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation for Riverpod providers
+  riverpod_generator: ^2.6.5
+  build_runner: ^2.4.15
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
