@@ -12,15 +12,21 @@ class MatchFoundEvent {
     required this.sessionId,
     required this.type,
     required this.expiresAt,
+    this.roomId,
+    this.zegoToken,
   });
   final String sessionId;
   final String type; // 'TEXT' | 'VOICE'
   final DateTime expiresAt;
+  final String? roomId;    // only present for VOICE sessions
+  final String? zegoToken; // only present for VOICE sessions
 
   factory MatchFoundEvent.fromJson(Map<String, dynamic> j) => MatchFoundEvent(
         sessionId: j['sessionId'] as String,
         type: j['type'] as String,
         expiresAt: DateTime.parse(j['expiresAt'] as String),
+        roomId: j['roomId'] as String?,
+        zegoToken: j['zegoToken'] as String?,
       );
 }
 

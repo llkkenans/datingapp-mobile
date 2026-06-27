@@ -14,6 +14,14 @@ class MatchRepository {
     await _dio.delete<void>('/api/v1/match/text');
   }
 
+  Future<void> enqueueVoice() async {
+    await _dio.post<void>('/api/v1/match/voice');
+  }
+
+  Future<void> cancelVoiceQueue() async {
+    await _dio.delete<void>('/api/v1/match/voice');
+  }
+
   Future<Map<String, dynamic>> getSession(String sessionId) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/v1/match/sessions/$sessionId');
     return res.data!;
