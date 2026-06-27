@@ -6,6 +6,9 @@
     <!-- Fallback for Android 12 and below (API <= 32) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <!-- Microphone access for anonymous voice matching -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <application
         android:label="datingapp_mobile"
         android:name="${applicationName}"

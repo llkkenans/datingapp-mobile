@@ -40,6 +40,7 @@ dependencies:
 
   # .env loading for SUPABASE_URL and SUPABASE_ANON_KEY
   flutter_dotenv: ^5.2.1
+  zego_express_engine: ^3.24.1
 
 dev_dependencies:
   flutter_test:
