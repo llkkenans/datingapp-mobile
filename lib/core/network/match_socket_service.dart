@@ -134,23 +134,22 @@ class MatchSocketService {
   void connect() {
     if (_initialized) return;
     final session = Supabase.instance.client.auth.currentSession;
-    final userId = session?.user.id;
-    if (userId == null) {
+    if (session == null) {
       debugPrint('[MatchSocket] No active session — skipping connect');
       return;
     }
 
     final baseUrl = dotenv.env['BACKEND_BASE_URL'] ?? 'http://localhost:3000';
 
-    // Backend auth stub: MatchGateway.handleConnection trusts handshake.auth.userId
-    // directly (no JWT verification yet — see match.gateway.ts comment).
-    // We send both userId and JWT so the backend can add verification later.
-    // Namespace is appended to the URL — socket_io_client does not use OptionBuilder.setNamespace.
     _socket = io.io(
       '$baseUrl/match',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth({'userId': userId, 'token': session?.accessToken})
+          .setAuthFn((cb) {
+            final token =
+                Supabase.instance.client.auth.currentSession?.accessToken ?? '';
+            cb({'token': token});
+          })
           .disableAutoConnect()
           .build(),
     );

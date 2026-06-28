@@ -73,8 +73,7 @@ class MessagesSocketService {
   void connect() {
     if (_initialized) return;
     final session = Supabase.instance.client.auth.currentSession;
-    final userId = session?.user.id;
-    if (userId == null) {
+    if (session == null) {
       debugPrint('[MessagesSocket] No active session — skipping connect');
       return;
     }
@@ -85,7 +84,11 @@ class MessagesSocketService {
       '$baseUrl/messages',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth({'userId': userId, 'token': session?.accessToken})
+          .setAuthFn((cb) {
+            final token =
+                Supabase.instance.client.auth.currentSession?.accessToken ?? '';
+            cb({'token': token});
+          })
           .disableAutoConnect()
           .build(),
     );
