@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/voice_match_notifier.dart';
+import '../../../messages/presentation/chat_detail_screen.dart';
 
 class VoiceMatchSuccessScreen extends ConsumerWidget {
   const VoiceMatchSuccessScreen({super.key, required this.mutualLike});
@@ -87,7 +88,13 @@ class VoiceMatchSuccessScreen extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     ref.read(voiceMatchNotifierProvider.notifier).reset();
-                    context.go('/messages');
+                    context.go(
+                      '/messages/${mutualLike.conversationId}',
+                      extra: ChatArgs(
+                        username: mutualLike.partnerUsername,
+                        avatarUrl: mutualLike.partnerAvatarUrl,
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.chat_bubble_rounded, size: 18),
                   label: const Text('Go to Conversation'),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/text_match_notifier.dart';
+import '../../../messages/presentation/chat_detail_screen.dart';
 
 class MatchSuccessScreen extends ConsumerWidget {
   const MatchSuccessScreen({super.key, required this.mutualLike});
@@ -89,9 +90,13 @@ class MatchSuccessScreen extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     ref.read(textMatchNotifierProvider.notifier).reset();
-                    // Navigate to the conversation in Messages tab.
-                    // Phase 6 will wire /messages/:conversationId.
-                    context.go('/messages');
+                    context.go(
+                      '/messages/${mutualLike.conversationId}',
+                      extra: ChatArgs(
+                        username: mutualLike.partnerUsername,
+                        avatarUrl: mutualLike.partnerAvatarUrl,
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.chat_bubble_rounded, size: 18),
                   label: const Text('Go to Conversation'),

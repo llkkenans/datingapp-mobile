@@ -16,6 +16,8 @@ import '../../features/match/providers/text_match_notifier.dart';
 import '../../features/match/providers/voice_match_notifier.dart';
 import '../../features/match/voice_match/presentation/voice_call_screen.dart';
 import '../../features/match/voice_match/presentation/voice_match_success_screen.dart';
+import '../../features/messages/presentation/conversation_list_screen.dart';
+import '../../features/messages/presentation/chat_detail_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'auth_routing.dart';
 import '../network/dio_client.dart';
@@ -29,19 +31,6 @@ class _DiscoverPlaceholder extends StatelessWidget {
         body: Center(
           child: Text(
             'Discover — Phase 6',
-            style: TextStyle(color: Colors.white54),
-          ),
-        ),
-      );
-}
-
-class _MessagesPlaceholder extends StatelessWidget {
-  const _MessagesPlaceholder();
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(
-          child: Text(
-            'Messages — Phase 6',
             style: TextStyle(color: Colors.white54),
           ),
         ),
@@ -202,7 +191,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/messages',
                 name: 'messages',
-                builder: (context, state) => const _MessagesPlaceholder(),
+                builder: (context, state) => const ConversationListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':conversationId',
+                    name: 'chat-detail',
+                    builder: (context, state) {
+                      final id =
+                          state.pathParameters['conversationId']!;
+                      final args = state.extra as ChatArgs?;
+                      return ChatDetailScreen(
+                        conversationId: id,
+                        username: args?.username,
+                        avatarUrl: args?.avatarUrl,
+                        isOnline: args?.isOnline ?? false,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

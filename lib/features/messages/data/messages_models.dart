@@ -18,17 +18,20 @@ class ConversationUser {
     required this.id,
     required this.username,
     this.avatarUrl,
+    this.isOnline = false,
   });
 
   final String id;
   final String username;
   final String? avatarUrl;
+  final bool isOnline;
 
   factory ConversationUser.fromJson(Map<String, dynamic> json) {
     return ConversationUser(
       id: json['id'] as String,
       username: json['username'] as String,
       avatarUrl: json['avatarUrl'] as String?,
+      isOnline: json['isOnline'] as bool? ?? false,
     );
   }
 }
@@ -69,6 +72,8 @@ class Conversation {
     this.lastMessage,
     this.lastMessageAt,
     required this.createdAt,
+    this.fromMatch = false,
+    this.unreadCount = 0,
   });
 
   final String id;
@@ -76,6 +81,8 @@ class Conversation {
   final LastMessage? lastMessage;
   final DateTime? lastMessageAt;
   final DateTime createdAt;
+  final bool fromMatch;
+  final int unreadCount;
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
@@ -90,6 +97,8 @@ class Conversation {
           ? DateTime.parse(json['lastMessageAt'] as String)
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      fromMatch: json['fromMatch'] as bool? ?? false,
+      unreadCount: json['unreadCount'] as int? ?? 0,
     );
   }
 
@@ -103,6 +112,8 @@ class Conversation {
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       createdAt: createdAt,
+      fromMatch: fromMatch,
+      unreadCount: unreadCount,
     );
   }
 }
