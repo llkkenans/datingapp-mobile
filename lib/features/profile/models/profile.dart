@@ -30,7 +30,12 @@ class Profile {
         preferredGender: j['preferredGender'] as String,
         city: j['city'] as String,
         interests: (j['interests'] as List? ?? [])
-            .map((e) => Interest.fromJson(e as Map<String, dynamic>))
+            .map((e) {
+              final wrapper = e as Map<String, dynamic>;
+              // GET /profiles/me returns [{userId, interestId, interest: {id, name}}]
+              final inner = wrapper['interest'] as Map<String, dynamic>?;
+              return Interest.fromJson(inner ?? wrapper);
+            })
             .toList(),
         bio: j['bio'] as String?,
         avatarUrl: j['avatarUrl'] as String?,

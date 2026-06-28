@@ -55,9 +55,12 @@ class _ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final statusCode = err.response?.statusCode;
-    final message = err.response?.data?['message'] as String? ??
+    final body = err.response?.data;
+    final message = (body is Map ? body['message'] : null) as String? ??
         err.message ??
         'Unknown network error';
+    debugPrint('[DioError] ${err.requestOptions.method} ${err.requestOptions.path}'
+        ' → status=$statusCode type=${err.type.name} message="$message" body=$body');
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import '../data/profile_repository.dart';
@@ -24,6 +25,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<Profile>> {
       final profile = await _repo.getMyProfile();
       state = AsyncValue.data(profile);
     } catch (e, st) {
+      debugPrint('[ProfileNotifier] load failed: $e\n$st');
       state = AsyncValue.error(e, st);
     }
   }
