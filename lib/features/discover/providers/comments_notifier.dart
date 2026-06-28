@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/discover_models.dart';
 import '../data/discover_repository.dart';
+import 'feed_notifier.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -63,12 +64,14 @@ final class CommentsError extends CommentsState {
 // ─── Notifier ─────────────────────────────────────────────────────────────────
 
 class CommentsNotifier extends StateNotifier<CommentsState> {
-  CommentsNotifier(this._postId, this._repo) : super(const CommentsLoading()) {
+  CommentsNotifier(this._postId, this._repo, this._feedNotifier)
+      : super(const CommentsLoading()) {
     _load();
   }
 
   final String _postId;
   final DiscoverRepository _repo;
+  final FeedNotifier _feedNotifier;
 
   // ─── Init ────────────────────────────────────────────────────────────────
 
@@ -133,6 +136,7 @@ class CommentsNotifier extends StateNotifier<CommentsState> {
         comments: [comment, ...loaded.comments],
         isSubmitting: false,
       );
+      _feedNotifier.incrementCommentCount(_postId);
     } catch (e) {
       final loaded = state;
       if (loaded is! CommentsLoaded) return;
@@ -158,6 +162,7 @@ class CommentsNotifier extends StateNotifier<CommentsState> {
     state = current.copyWith(
       comments: current.comments.where((c) => c.id != commentId).toList(),
     );
+    _feedNotifier.decrementCommentCount(_postId);
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -175,5 +180,9 @@ class CommentsNotifier extends StateNotifier<CommentsState> {
 // family provider — one CommentsNotifier per postId
 final commentsNotifierProvider = StateNotifierProvider.family<
     CommentsNotifier, CommentsState, String>(
-  (ref, postId) => CommentsNotifier(postId, ref.read(discoverRepositoryProvider)),
+  (ref, postId) => CommentsNotifier(
+    postId,
+    ref.read(discoverRepositoryProvider),
+    ref.read(feedNotifierProvider.notifier),
+  ),
 );

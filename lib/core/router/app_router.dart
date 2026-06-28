@@ -16,6 +16,7 @@ import '../../features/match/providers/text_match_notifier.dart';
 import '../../features/match/providers/voice_match_notifier.dart';
 import '../../features/match/voice_match/presentation/voice_call_screen.dart';
 import '../../features/match/voice_match/presentation/voice_match_success_screen.dart';
+import '../../features/discover/presentation/discover_feed_screen.dart';
 import '../../features/messages/presentation/conversation_list_screen.dart';
 import '../../features/messages/presentation/chat_detail_screen.dart';
 import 'go_router_refresh_stream.dart';
@@ -23,19 +24,6 @@ import 'auth_routing.dart';
 import '../network/dio_client.dart';
 
 // ─── Phase-6 placeholder tabs ─────────────────────────────────────────────────
-
-class _DiscoverPlaceholder extends StatelessWidget {
-  const _DiscoverPlaceholder();
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(
-          child: Text(
-            'Discover — Phase 6',
-            style: TextStyle(color: Colors.white54),
-          ),
-        ),
-      );
-}
 
 class _ProfilePlaceholder extends StatelessWidget {
   const _ProfilePlaceholder();
@@ -173,7 +161,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/discover',
                 name: 'discover',
-                builder: (context, state) => const _DiscoverPlaceholder(),
+                builder: (context, state) => const DiscoverFeedScreen(),
               ),
             ],
           ),

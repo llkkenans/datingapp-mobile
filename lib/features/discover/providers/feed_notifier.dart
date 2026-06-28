@@ -189,6 +189,39 @@ class FeedNotifier extends StateNotifier<FeedState> {
     );
   }
 
+  // ─── Comment count sync ───────────────────────────────────────────────────
+
+  void incrementCommentCount(String postId) {
+    final current = state;
+    if (current is! FeedLoaded) return;
+    final idx = current.posts.indexWhere((p) => p.id == postId);
+    if (idx == -1) return;
+    final post = current.posts[idx];
+    state = current.copyWith(
+      posts: _replaceAt(
+        current.posts,
+        idx,
+        post.copyWith(commentCount: post.commentCount + 1),
+      ),
+    );
+  }
+
+  void decrementCommentCount(String postId) {
+    final current = state;
+    if (current is! FeedLoaded) return;
+    final idx = current.posts.indexWhere((p) => p.id == postId);
+    if (idx == -1) return;
+    final post = current.posts[idx];
+    if (post.commentCount <= 0) return;
+    state = current.copyWith(
+      posts: _replaceAt(
+        current.posts,
+        idx,
+        post.copyWith(commentCount: post.commentCount - 1),
+      ),
+    );
+  }
+
   // ─── Helpers ─────────────────────────────────────────────────────────────
 
   List<DiscoverPost> _replaceAt(
