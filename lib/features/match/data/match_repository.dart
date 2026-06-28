@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 
@@ -15,11 +16,13 @@ class MatchRepository {
   }
 
   Future<void> enqueueVoice() async {
-    await _dio.post<void>('/api/v1/match/voice');
+    final res = await _dio.post<dynamic>('/api/v1/match/voice');
+    debugPrint('[MatchRepo] enqueueVoice → HTTP ${res.statusCode} | body: ${res.data}');
   }
 
   Future<void> cancelVoiceQueue() async {
-    await _dio.delete<void>('/api/v1/match/voice');
+    final res = await _dio.delete<dynamic>('/api/v1/match/voice');
+    debugPrint('[MatchRepo] cancelVoiceQueue → HTTP ${res.statusCode}');
   }
 
   Future<Map<String, dynamic>> getSession(String sessionId) async {

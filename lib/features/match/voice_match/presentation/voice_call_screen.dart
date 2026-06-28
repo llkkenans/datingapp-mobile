@@ -71,43 +71,94 @@ class _VoiceCallScreenState extends ConsumerState<VoiceCallScreen>
   }
 
   Future<void> _initZego() async {
-    final appIdStr = dotenv.env['ZEGO_APP_ID'] ?? '0';
-    final appId = int.tryParse(appIdStr) ?? 0;
-    if (appId == 0) return; // Not configured — skip in dev without ZEGO credentials
-
-    final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
-
-    await ZegoExpressEngine.createEngineWithProfile(
-      ZegoEngineProfile(appId, ZegoScenario.Default),
-    );
-
-    ZegoExpressEngine.onRoomStreamUpdate =
-        (roomID, updateType, streamList, _) {
-      if (!mounted) return;
-      for (final stream in streamList) {
-        if (updateType == ZegoUpdateType.Add) {
-          ZegoExpressEngine.instance.startPlayingStream(stream.streamID);
-          if (!_remoteStreamIds.contains(stream.streamID)) {
-            _remoteStreamIds.add(stream.streamID);
-          }
-        } else {
-          ZegoExpressEngine.instance.stopPlayingStream(stream.streamID);
-          _remoteStreamIds.remove(stream.streamID);
-        }
+    try {
+      final appIdStr = dotenv.env['ZEGO_APP_ID'] ?? '0';
+      final appId = int.tryParse(appIdStr) ?? 0;
+      debugPrint('[Zego] ZEGO_APP_ID raw="${dotenv.env['ZEGO_APP_ID']}" parsed=$appId');
+      if (appId == 0) {
+        debugPrint('[Zego] App ID is 0 — skipping engine init');
+        return;
       }
-    };
 
-    final config = ZegoRoomConfig.defaultConfig()..token = widget.zegoToken;
-    await ZegoExpressEngine.instance.loginRoom(
-      widget.roomId,
-      ZegoUser(userId, userId),
-      config: config,
-    );
+      final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
+      debugPrint('[Zego] userId=$userId roomId=${widget.roomId}');
+      debugPrint('[Zego] zegoToken (first 20 chars): ${widget.zegoToken.length > 20 ? widget.zegoToken.substring(0, 20) : widget.zegoToken}...');
 
-    final streamId = '${widget.roomId}_$userId';
-    await ZegoExpressEngine.instance.startPublishingStream(streamId);
+      debugPrint('[Zego] Calling createEngineWithProfile...');
+      await ZegoExpressEngine.createEngineWithProfile(
+        ZegoEngineProfile(appId, ZegoScenario.Default),
+      );
+      debugPrint('[Zego] Engine created');
 
-    if (mounted) setState(() => _zegoReady = true);
+      ZegoExpressEngine.onRoomStreamUpdate =
+          (roomID, updateType, streamList, _) {
+        debugPrint('[Zego] onRoomStreamUpdate: type=$updateType streams=${streamList.map((s) => s.streamID).toList()}');
+        if (!mounted) return;
+        for (final stream in streamList) {
+          if (updateType == ZegoUpdateType.Add) {
+            ZegoExpressEngine.instance.startPlayingStream(stream.streamID);
+            if (!_remoteStreamIds.contains(stream.streamID)) {
+              _remoteStreamIds.add(stream.streamID);
+            }
+          } else {
+            ZegoExpressEngine.instance.stopPlayingStream(stream.streamID);
+            _remoteStreamIds.remove(stream.streamID);
+          }
+        }
+      };
+
+      // Listen for room state changes so we can detect login success/failure
+      ZegoExpressEngine.onRoomStateChanged = (roomID, reason, errorCode, extendedData) {
+        debugPrint('[Zego] onRoomStateChanged: room=$roomID reason=$reason errorCode=$errorCode');
+      };
+
+      final config = ZegoRoomConfig.defaultConfig()..token = widget.zegoToken;
+      debugPrint('[Zego] Calling loginRoom...');
+      final loginResult = await ZegoExpressEngine.instance.loginRoom(
+        widget.roomId,
+        ZegoUser(userId, userId),
+        config: config,
+      );
+      debugPrint('[Zego] loginRoom result: $loginResult');
+
+      final streamId = '${widget.roomId}_$userId';
+      debugPrint('[Zego] Starting publishing stream: $streamId');
+      await ZegoExpressEngine.instance.startPublishingStream(streamId);
+      debugPrint('[Zego] Publishing started');
+
+      // ── Mic capture verification ──────────────────────────────────────────
+      // onCapturedSoundLevelUpdate fires ~every 100ms with values 0–100.
+      // Silence = near-zero floats. No callbacks at all = mic not captured.
+      // Consistent 0.0 on a real device = muted/permission denied.
+      // On iOS Simulator the Mac host mic is used; values may be very low
+      // even with a live mic (simulator ADC is 8-bit, dynamic range is poor).
+      ZegoExpressEngine.onCapturedSoundLevelUpdate = (soundLevel) {
+        debugPrint('[Zego] 🎙 capturedSoundLevel=$soundLevel');
+      };
+      ZegoExpressEngine.onRemoteSoundLevelUpdate = (soundLevels) {
+        debugPrint('[Zego] 🔊 remoteSoundLevels=$soundLevels');
+      };
+      // Audio route tells us earpiece / speaker / bluetooth / headphone
+      ZegoExpressEngine.onAudioRouteChange = (audioRoute) {
+        debugPrint('[Zego] 🔈 audioRoute changed → $audioRoute');
+      };
+      // Publisher quality: stateChanged fires when publish state changes (e.g. no-send)
+      ZegoExpressEngine.onPublisherStateUpdate = (streamID, state, errorCode, extendedData) {
+        debugPrint('[Zego] 📡 publisherState: stream=$streamID state=$state errorCode=$errorCode');
+      };
+      // Start the sound level monitor — without this onCapturedSoundLevelUpdate never fires
+      await ZegoExpressEngine.instance.startSoundLevelMonitor(
+        config: ZegoSoundLevelConfig(500, false),
+      );
+      debugPrint('[Zego] Sound level monitor started — watch for 🎙 lines');
+      // ─────────────────────────────────────────────────────────────────────
+
+      if (mounted) setState(() => _zegoReady = true);
+      debugPrint('[Zego] Init complete — zegoReady=true');
+    } catch (e, st) {
+      debugPrint('[Zego] _initZego ERROR: $e');
+      debugPrint('[Zego] Stack trace: $st');
+    }
   }
 
   Future<void> _teardownZego() async {
@@ -115,6 +166,7 @@ class _VoiceCallScreenState extends ConsumerState<VoiceCallScreen>
     _zegoDestroyed = true;
 
     try {
+      await ZegoExpressEngine.instance.stopSoundLevelMonitor();
       await ZegoExpressEngine.instance.stopPublishingStream();
       for (final id in List<String>.from(_remoteStreamIds)) {
         await ZegoExpressEngine.instance.stopPlayingStream(id);

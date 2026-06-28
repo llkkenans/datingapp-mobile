@@ -23,6 +23,8 @@ PODS:
     - Flutter
   - url_launcher_ios (0.0.1):
     - Flutter
+  - zego_express_engine (3.24.1):
+    - Flutter
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
@@ -36,6 +38,7 @@ DEPENDENCIES:
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+  - zego_express_engine (from `.symlinks/plugins/zego_express_engine/ios`)
 
 EXTERNAL SOURCES:
   app_links:
@@ -60,6 +63,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/ua_client_hints/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
+  zego_express_engine:
+    :path: ".symlinks/plugins/zego_express_engine/ios"
 
 SPEC CHECKSUMS:
   app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
@@ -73,7 +78,8 @@ SPEC CHECKSUMS:
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   ua_client_hints: 6f8942ec0651883e0959cf255cdeaf8f93cf69e3
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  zego_express_engine: c5bb7c034b0618cecf84b109b8c5329fc73bc3a3
 
-PODFILE CHECKSUM: 2dc5cf8c6253af860df2597c5f5674fc0b88222e
+PODFILE CHECKSUM: 0e9ffc005f0b5f02b1fd9b3f19bd1b1a89d53005
 
 COCOAPODS: 1.16.2

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/match_socket_service.dart';
 import '../data/match_repository.dart';
@@ -93,11 +94,18 @@ class VoiceMatchNotifier extends StateNotifier<VoiceMatchState> {
   // ─── Public actions ──────────────────────────────────────────────────────────
 
   Future<void> startSearch() async {
-    if (state is! VoiceMatchIdle) return;
+    debugPrint('[VoiceMatch] startSearch() called — current state: ${state.runtimeType}');
+    if (state is! VoiceMatchIdle) {
+      debugPrint('[VoiceMatch] startSearch() blocked — state is not Idle, aborting');
+      return;
+    }
     state = const VoiceMatchSearching();
+    debugPrint('[VoiceMatch] State → Searching; calling enqueueVoice()...');
     try {
       await _repo.enqueueVoice();
+      debugPrint('[VoiceMatch] enqueueVoice() completed — waiting for match.found WS event');
     } on Exception catch (e) {
+      debugPrint('[VoiceMatch] enqueueVoice() threw: $e');
       state = VoiceMatchError(message: _friendlyError(e));
     }
   }
