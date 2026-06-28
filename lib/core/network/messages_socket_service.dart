@@ -80,14 +80,17 @@ class MessageReadEvent {
 class MessagesSocketService {
   late io.Socket _socket;
   bool _initialized = false;
+  bool _hasConnected = false;
 
   final _messageNewCtrl = StreamController<MessageNewEvent>.broadcast();
   final _messageReadCtrl = StreamController<MessageReadEvent>.broadcast();
   final _typingCtrl = StreamController<TypingEvent>.broadcast();
+  final _reconnectCtrl = StreamController<void>.broadcast();
 
   Stream<MessageNewEvent> get onMessageNew => _messageNewCtrl.stream;
   Stream<MessageReadEvent> get onMessageRead => _messageReadCtrl.stream;
   Stream<TypingEvent> get onTyping => _typingCtrl.stream;
+  Stream<void> get onReconnect => _reconnectCtrl.stream;
 
   void connect() {
     if (_initialized) return;
@@ -113,7 +116,15 @@ class MessagesSocketService {
     );
 
     _socket
-      ..on('connect', (_) => debugPrint('[MessagesSocket] Connected'))
+      ..on('connect', (_) {
+            if (_hasConnected) {
+              debugPrint('[MessagesSocket] Reconnected — triggering resync');
+              _reconnectCtrl.add(null);
+            } else {
+              debugPrint('[MessagesSocket] Connected');
+              _hasConnected = true;
+            }
+          })
       ..on('disconnect', (_) => debugPrint('[MessagesSocket] Disconnected'))
       ..on('connect_error', (e) => debugPrint('[MessagesSocket] Error: $e'))
       ..on('message.new', (d) => _emit(_messageNewCtrl, d, MessageNewEvent.fromJson))
@@ -155,6 +166,7 @@ class MessagesSocketService {
     _messageNewCtrl.close();
     _messageReadCtrl.close();
     _typingCtrl.close();
+    _reconnectCtrl.close();
   }
 }
 

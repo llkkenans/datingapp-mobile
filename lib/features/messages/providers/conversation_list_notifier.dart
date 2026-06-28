@@ -40,7 +40,9 @@ class ConversationListNotifier
   final List<StreamSubscription<dynamic>> _subs = [];
 
   void _listenToSocket() {
-    _subs.add(_socket.onMessageNew.listen(_onMessageNew));
+    _subs
+      ..add(_socket.onMessageNew.listen(_onMessageNew))
+      ..add(_socket.onReconnect.listen((_) => _load()));
   }
 
   // ─── Init ────────────────────────────────────────────────────────────────

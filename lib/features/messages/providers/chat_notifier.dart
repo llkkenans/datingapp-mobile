@@ -90,7 +90,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _subs
       ..add(_socket.onMessageNew.listen(_onMessageNew))
       ..add(_socket.onMessageRead.listen(_onMessageRead))
-      ..add(_socket.onTyping.listen(_onTyping));
+      ..add(_socket.onTyping.listen(_onTyping))
+      ..add(_socket.onReconnect.listen((_) => _resync()));
   }
 
   // ─── Init ────────────────────────────────────────────────────────────────
@@ -106,6 +107,25 @@ class ChatNotifier extends StateNotifier<ChatState> {
       _maybeMarkReadOnOpen(page.messages);
     } catch (e) {
       state = ChatError(_friendlyError(e));
+    }
+  }
+
+  // ─── Reconnect resync ────────────────────────────────────────────────────
+
+  Future<void> _resync() async {
+    final current = state;
+    if (current is! ChatLoaded) return;
+    try {
+      final page = await _repo.getMessages(_conversationId);
+      final existingIds = {for (final m in current.messages) m.id};
+      final fresh = page.messages.where((m) => !existingIds.contains(m.id)).toList();
+      if (fresh.isEmpty) return;
+      final merged = [...current.messages, ...fresh]
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      state = current.copyWith(messages: merged);
+      _maybeMarkReadOnOpen(merged);
+    } catch (e) {
+      debugPrint('[Chat] resync failed: $e');
     }
   }
 
@@ -237,7 +257,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
     final idx = current.messages.indexWhere((m) => m.id == tempId);
     if (idx == -1) return;
     final updated = List<Message>.from(current.messages);
-    updated[idx] = confirmed;
+    // _resync() may have already inserted the confirmed message while the HTTP
+    // response was in-flight during a reconnect. Drop the local_ ghost instead
+    // of replacing it, which would produce a visible duplicate.
+    if (updated.any((m) => m.id == confirmed.id)) {
+      updated.removeAt(idx);
+    } else {
+      updated[idx] = confirmed;
+    }
     state = current.copyWith(messages: updated);
   }
 
