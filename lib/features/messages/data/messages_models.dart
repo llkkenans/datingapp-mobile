@@ -92,6 +92,19 @@ class Conversation {
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
+
+  Conversation copyWith({
+    LastMessage? lastMessage,
+    DateTime? lastMessageAt,
+  }) {
+    return Conversation(
+      id: id,
+      otherUser: otherUser,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      createdAt: createdAt,
+    );
+  }
 }
 
 class Message {
@@ -103,6 +116,7 @@ class Message {
     this.photoUrl,
     required this.status,
     required this.createdAt,
+    this.localFilePath,
   });
 
   final String id;
@@ -112,6 +126,11 @@ class Message {
   final String? photoUrl;
   final MessageStatus status;
   final DateTime createdAt;
+  // Non-null only for pending photo messages (id starts with 'local_').
+  // UI uses Image.file(File(localFilePath!)) until reconciled with server response.
+  final String? localFilePath;
+
+  bool get isPending => id.startsWith('local_');
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
@@ -122,6 +141,27 @@ class Message {
       photoUrl: json['photoUrl'] as String?,
       status: MessageStatus.fromJson(json['status'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
+  Message copyWith({
+    String? id,
+    String? content,
+    String? photoUrl,
+    MessageStatus? status,
+    DateTime? createdAt,
+    String? localFilePath,
+    bool clearLocalFilePath = false,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      conversationId: conversationId,
+      senderId: senderId,
+      content: content ?? this.content,
+      photoUrl: photoUrl ?? this.photoUrl,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      localFilePath: clearLocalFilePath ? null : (localFilePath ?? this.localFilePath),
     );
   }
 }
