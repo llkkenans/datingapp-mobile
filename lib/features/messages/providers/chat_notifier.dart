@@ -270,7 +270,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
       createdAt: event.createdAt,
     );
 
-    state = current.copyWith(messages: [...current.messages, incoming]);
+    state = current.copyWith(
+      messages: [...current.messages, incoming],
+      // Receiving a message guarantees the sender stopped typing — clear the
+      // indicator even if typing.stop was never received.
+      isPartnerTyping: incoming.senderId != _currentUserId
+          ? false
+          : current.isPartnerTyping,
+    );
 
     // Screen is open = user is reading — mark as read immediately
     _markReadFireAndForget(event.messageId);
