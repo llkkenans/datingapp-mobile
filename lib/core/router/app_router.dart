@@ -19,24 +19,11 @@ import '../../features/match/voice_match/presentation/voice_match_success_screen
 import '../../features/discover/presentation/discover_feed_screen.dart';
 import '../../features/messages/presentation/conversation_list_screen.dart';
 import '../../features/messages/presentation/chat_detail_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/edit_profile_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'auth_routing.dart';
 import '../network/dio_client.dart';
-
-// ─── Phase-6 placeholder tabs ─────────────────────────────────────────────────
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(
-          child: Text(
-            'Profile — Phase 6',
-            style: TextStyle(color: Colors.white54),
-          ),
-        ),
-      );
-}
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -205,7 +192,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 name: 'profile',
-                builder: (context, state) => const _ProfilePlaceholder(),
+                builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'profile-edit',
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),
