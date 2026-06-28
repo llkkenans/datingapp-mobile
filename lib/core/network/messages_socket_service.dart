@@ -7,6 +7,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ─── Event payloads (mirror messaging.gateway.ts payload shapes) ──────────────
 
+class TypingEvent {
+  const TypingEvent({
+    required this.conversationId,
+    required this.userId,
+    required this.isTyping,
+  });
+  final String conversationId;
+  final String userId;
+  final bool isTyping;
+
+  factory TypingEvent.fromJson(Map<String, dynamic> j) => TypingEvent(
+        conversationId: j['conversationId'] as String,
+        userId: j['userId'] as String,
+        isTyping: j['isTyping'] as bool,
+      );
+}
+
 class MessageNewEvent {
   const MessageNewEvent({
     required this.conversationId,
@@ -66,9 +83,11 @@ class MessagesSocketService {
 
   final _messageNewCtrl = StreamController<MessageNewEvent>.broadcast();
   final _messageReadCtrl = StreamController<MessageReadEvent>.broadcast();
+  final _typingCtrl = StreamController<TypingEvent>.broadcast();
 
   Stream<MessageNewEvent> get onMessageNew => _messageNewCtrl.stream;
   Stream<MessageReadEvent> get onMessageRead => _messageReadCtrl.stream;
+  Stream<TypingEvent> get onTyping => _typingCtrl.stream;
 
   void connect() {
     if (_initialized) return;
@@ -99,6 +118,7 @@ class MessagesSocketService {
       ..on('connect_error', (e) => debugPrint('[MessagesSocket] Error: $e'))
       ..on('message.new', (d) => _emit(_messageNewCtrl, d, MessageNewEvent.fromJson))
       ..on('message.read', (d) => _emit(_messageReadCtrl, d, MessageReadEvent.fromJson))
+      ..on('message.typing', (d) => _emit(_typingCtrl, d, TypingEvent.fromJson))
       ..connect();
 
     _initialized = true;
@@ -116,6 +136,16 @@ class MessagesSocketService {
     }
   }
 
+  void sendTypingStart(String conversationId) {
+    if (!_initialized) return;
+    _socket.emit('message.typing.start', {'conversationId': conversationId});
+  }
+
+  void sendTypingStop(String conversationId) {
+    if (!_initialized) return;
+    _socket.emit('message.typing.stop', {'conversationId': conversationId});
+  }
+
   void dispose() {
     if (_initialized) {
       _socket
@@ -124,6 +154,7 @@ class MessagesSocketService {
     }
     _messageNewCtrl.close();
     _messageReadCtrl.close();
+    _typingCtrl.close();
   }
 }
 

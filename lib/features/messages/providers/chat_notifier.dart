@@ -25,6 +25,7 @@ final class ChatLoaded extends ChatState {
     this.nextCursor,
     this.isLoadingMore = false,
     this.sendError,
+    this.isPartnerTyping = false,
   });
 
   final List<Message> messages;
@@ -33,6 +34,7 @@ final class ChatLoaded extends ChatState {
   final bool isLoadingMore;
   // Set on failed send; cleared on next user action. UI shows a dismissible banner.
   final String? sendError;
+  final bool isPartnerTyping;
 
   ChatLoaded copyWith({
     List<Message>? messages,
@@ -41,6 +43,7 @@ final class ChatLoaded extends ChatState {
     bool? isLoadingMore,
     String? sendError,
     bool clearSendError = false,
+    bool? isPartnerTyping,
   }) {
     return ChatLoaded(
       messages: messages ?? this.messages,
@@ -48,6 +51,7 @@ final class ChatLoaded extends ChatState {
       nextCursor: nextCursor ?? this.nextCursor,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       sendError: clearSendError ? null : (sendError ?? this.sendError),
+      isPartnerTyping: isPartnerTyping ?? this.isPartnerTyping,
     );
   }
 }
@@ -76,13 +80,17 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final ConversationListNotifier _convListNotifier;
   final List<StreamSubscription<dynamic>> _subs = [];
 
+  bool _isTypingActive = false;
+  Timer? _typingStopTimer;
+
   String get _currentUserId =>
       Supabase.instance.client.auth.currentUser?.id ?? '';
 
   void _listenToSocket() {
     _subs
       ..add(_socket.onMessageNew.listen(_onMessageNew))
-      ..add(_socket.onMessageRead.listen(_onMessageRead));
+      ..add(_socket.onMessageRead.listen(_onMessageRead))
+      ..add(_socket.onTyping.listen(_onTyping));
   }
 
   // ─── Init ────────────────────────────────────────────────────────────────
@@ -130,11 +138,33 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  // ─── Typing indicators ────────────────────────────────────────────────────
+
+  // Called by the UI on every keystroke. Leading-edge debounce: emits
+  // typing.start once per burst, then resets the 3-second inactivity timer.
+  void onUserTyped() {
+    if (!_isTypingActive) {
+      _isTypingActive = true;
+      _socket.sendTypingStart(_conversationId);
+    }
+    _typingStopTimer?.cancel();
+    _typingStopTimer = Timer(const Duration(seconds: 3), _stopTyping);
+  }
+
+  void _stopTyping() {
+    if (!_isTypingActive) return;
+    _isTypingActive = false;
+    _socket.sendTypingStop(_conversationId);
+  }
+
   // ─── Send text (optimistic) ───────────────────────────────────────────────
 
   Future<void> sendMessage(String content) async {
     final current = state;
     if (current is! ChatLoaded) return;
+
+    _typingStopTimer?.cancel();
+    _stopTyping();
 
     final tempId = 'local_${DateTime.now().microsecondsSinceEpoch}';
     final pending = Message(
@@ -165,6 +195,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
   Future<void> sendPhoto(File file) async {
     final current = state;
     if (current is! ChatLoaded) return;
+
+    _typingStopTimer?.cancel();
+    _stopTyping();
 
     final tempId = 'local_${DateTime.now().microsecondsSinceEpoch}';
     final pending = Message(
@@ -270,6 +303,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = current.copyWith(messages: updated);
   }
 
+  void _onTyping(TypingEvent event) {
+    if (event.conversationId != _conversationId) return;
+    if (event.userId == _currentUserId) return;
+    final current = state;
+    if (current is! ChatLoaded) return;
+    state = current.copyWith(isPartnerTyping: event.isTyping);
+  }
+
   // ─── markRead ─────────────────────────────────────────────────────────────
 
   // Called on open when the last message is from the other party and unread.
@@ -303,6 +344,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   @override
   void dispose() {
+    _typingStopTimer?.cancel();
+    _stopTyping();
     for (final s in _subs) {
       s.cancel();
     }

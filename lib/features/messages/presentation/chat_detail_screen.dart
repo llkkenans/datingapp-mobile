@@ -57,6 +57,11 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     _inputController.addListener(() {
       final hasText = _inputController.text.trim().isNotEmpty;
       if (hasText != _inputHasText) setState(() => _inputHasText = hasText);
+      if (hasText) {
+        ref
+            .read(chatNotifierProvider(widget.conversationId).notifier)
+            .onUserTyped();
+      }
     });
     _scrollController.addListener(_onScroll);
   }
@@ -100,6 +105,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(chatNotifierProvider(widget.conversationId));
+    final isPartnerTyping =
+        state is ChatLoaded ? state.isPartnerTyping : false;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
@@ -114,6 +121,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           username: widget.username,
           avatarUrl: widget.avatarUrl,
           isOnline: widget.isOnline,
+          isPartnerTyping: isPartnerTyping,
         ),
         centerTitle: false,
       ),
@@ -168,16 +176,21 @@ class _AppBarTitle extends StatelessWidget {
     required this.username,
     required this.avatarUrl,
     required this.isOnline,
+    required this.isPartnerTyping,
   });
 
   final String? username;
   final String? avatarUrl;
   final bool isOnline;
+  final bool isPartnerTyping;
 
   static const _onlineGreen = Color(0xFF34C759);
+  static const _typingPurple = Color(0xFF6C63FF);
 
   @override
   Widget build(BuildContext context) {
+    final hasSubtitle = isOnline || isPartnerTyping;
+
     return Row(
       children: [
         SizedBox(
@@ -224,30 +237,43 @@ class _AppBarTitle extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Flexible(
-                child: Text(
-                  username != null ? '@$username' : 'Conversation',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                username != null ? '@$username' : 'Conversation',
+                style: TextStyle(
+                  fontSize: hasSubtitle ? 14 : 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-              if (isOnline) ...[
-                const SizedBox(width: 6),
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: _onlineGreen,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: isPartnerTyping
+                    ? const Text(
+                        'typing...',
+                        key: ValueKey('typing'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _typingPurple,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      )
+                    : isOnline
+                        ? const Text(
+                            'Online',
+                            key: ValueKey('online'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _onlineGreen,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey('none')),
+              ),
             ],
           ),
         ),
