@@ -194,10 +194,10 @@ class _PostCardState extends ConsumerState<_PostCard>
       children: [
         // Author row
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: Row(
             children: [
-              _Avatar(url: author.avatarUrl, size: 40),
+              _Avatar(url: author.avatarUrl, size: 36),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -233,10 +233,10 @@ class _PostCardState extends ConsumerState<_PostCard>
             child: Text(
               post.caption!,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: cs.onSurface,
-                height: 1.5,
+                height: 1.4,
               ),
             ),
           ),
@@ -248,7 +248,7 @@ class _PostCardState extends ConsumerState<_PostCard>
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
-                aspectRatio: 4 / 5,
+                aspectRatio: 16 / 9,
                 child: CachedNetworkImage(
                   imageUrl: post.photoUrl!,
                   fit: BoxFit.cover,
