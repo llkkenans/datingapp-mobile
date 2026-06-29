@@ -6,6 +6,7 @@ import '../data/discover_models.dart';
 import '../providers/feed_notifier.dart';
 import 'comments_sheet.dart';
 import 'create_post_screen.dart';
+import 'fullscreen_image_viewer.dart';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -251,14 +252,27 @@ class _PostCardState extends ConsumerState<_PostCard>
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: CachedNetworkImage(
-                  imageUrl: post.photoUrl!,
-                  fit: BoxFit.cover,
-                  placeholder: (_, _) => ColoredBox(
-                      color: cs.surfaceContainerHighest),
-                  errorWidget: (_, _, _) => ColoredBox(
-                      color: cs.surfaceContainerHighest),
+                aspectRatio: 4 / 5,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => FullscreenImageViewer(
+                        imageUrl: post.photoUrl!,
+                        heroTag: post.photoUrl!,
+                      ),
+                    ),
+                  ),
+                  child: Hero(
+                    tag: post.photoUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: post.photoUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) => ColoredBox(
+                          color: cs.surfaceContainerHighest),
+                      errorWidget: (_, _, _) => ColoredBox(
+                          color: cs.surfaceContainerHighest),
+                    ),
+                  ),
                 ),
               ),
             ),
