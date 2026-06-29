@@ -107,7 +107,7 @@ class _IdleView extends StatelessWidget {
           const SizedBox(height: 48),
           _MatchTypeCard(
             icon: Icons.chat_bubble_outline_rounded,
-            title: 'Text Match',
+            title: 'Text\nMatch',
             description: 'Anonymous 3-minute text conversation',
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -119,7 +119,7 @@ class _IdleView extends StatelessWidget {
           const SizedBox(height: 16),
           _MatchTypeCard(
             icon: Icons.mic_none_rounded,
-            title: 'Voice Match',
+            title: 'Voice\nMatch',
             description: 'Anonymous 3-minute voice call',
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -154,7 +154,7 @@ class _MatchTypeCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
         decoration: BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.circular(18),
@@ -163,29 +163,19 @@ class _MatchTypeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
+                Expanded(
+                  child: _ExtrudedTitle(title),
                 ),
-                Icon(icon, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Icon(icon, color: Colors.white, size: 22),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            const Text(
-              '3 minutes',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
             Text(
               description,
               style: TextStyle(
@@ -195,6 +185,40 @@ class _MatchTypeCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ExtrudedTitle extends StatelessWidget {
+  const _ExtrudedTitle(this.text);
+
+  final String text;
+
+  static const _style = TextStyle(
+    fontSize: 30,
+    fontWeight: FontWeight.w800,
+    fontStyle: FontStyle.italic,
+    letterSpacing: -0.5,
+    height: 0.95,
+    color: Colors.black,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform(
+      transform: Matrix4.rotationZ(-0.0524),
+      alignment: Alignment.centerLeft,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (int i = 6; i >= 1; i--)
+            Transform.translate(
+              offset: Offset(i.toDouble(), i.toDouble()),
+              child: Text(text, style: _style),
+            ),
+          Text(text, style: _style.copyWith(color: Colors.white)),
+        ],
       ),
     );
   }
