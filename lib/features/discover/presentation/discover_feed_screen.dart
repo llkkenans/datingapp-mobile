@@ -192,7 +192,7 @@ class _PostCardState extends ConsumerState<_PostCard>
     final cs = Theme.of(context).colorScheme;
     final post = widget.post;
     final author = post.author;
-    final imageWidth = (MediaQuery.of(context).size.width - 32) * 0.38;
+    final imageWidth = (MediaQuery.of(context).size.width - 78) * 0.38;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +249,7 @@ class _PostCardState extends ConsumerState<_PostCard>
         // Photo
         if (post.photoUrl != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            padding: const EdgeInsets.fromLTRB(62, 0, 16, 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -290,7 +290,7 @@ class _PostCardState extends ConsumerState<_PostCard>
 
         // Action row
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 16, 4),
+          padding: const EdgeInsets.fromLTRB(54, 4, 16, 4),
           child: Row(
             children: [
               ScaleTransition(
