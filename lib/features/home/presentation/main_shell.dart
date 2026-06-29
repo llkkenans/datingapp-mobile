@@ -15,6 +15,8 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: SafeArea(
@@ -22,13 +24,13 @@ class MainShell extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(32),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x66000000),
+                  color: cs.shadow.withValues(alpha: 0.4),
                   blurRadius: 16,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -49,7 +51,7 @@ class MainShell extends StatelessWidget {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: selected
-                              ? const Color(0x30C0FF00)
+                              ? cs.primary.withValues(alpha: 0.18)
                               : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
@@ -58,8 +60,8 @@ class MainShell extends StatelessWidget {
                               ? _icons[index].filled
                               : _icons[index].outline,
                           color: selected
-                              ? const Color(0xFFC0FF00)
-                              : const Color(0xFF8A8A8E),
+                              ? cs.primary
+                              : cs.onSurfaceVariant,
                           size: 24,
                         ),
                       ),

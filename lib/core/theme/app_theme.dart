@@ -47,7 +47,7 @@ class AppTheme {
         ),
         scaffoldBackgroundColor: _darkBackground,
         appBarTheme: const AppBarTheme(
-          backgroundColor: _darkBackground,
+          backgroundColor: _darkSurface,
           foregroundColor: Colors.white,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -81,7 +81,7 @@ class AppTheme {
         ),
         scaffoldBackgroundColor: _lightBackground,
         appBarTheme: const AppBarTheme(
-          backgroundColor: _lightBackground,
+          backgroundColor: _lightSurface,
           foregroundColor: _lightOnBackground,
           elevation: 0,
           surfaceTintColor: Colors.transparent,

@@ -21,6 +21,7 @@ import '../../features/messages/presentation/conversation_list_screen.dart';
 import '../../features/messages/presentation/chat_detail_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'auth_routing.dart';
 import '../network/dio_client.dart';
@@ -198,6 +199,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'edit',
                     name: 'profile-edit',
                     builder: (context, state) => const EditProfileScreen(),
+                  ),
+                  GoRoute(
+                    path: 'settings',
+                    name: 'settings',
+                    builder: (context, state) => const SettingsScreen(),
                   ),
                 ],
               ),
