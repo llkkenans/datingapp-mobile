@@ -65,6 +65,9 @@ class MatchTabScreen extends ConsumerWidget {
           'Match',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: body,
     );
