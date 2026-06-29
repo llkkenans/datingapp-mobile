@@ -70,15 +70,14 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_rounded, color: cs.onSurface, size: 26),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-            ),
-          ),
-          const SizedBox(width: 4),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+        ),
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
+        child: const Icon(Icons.add),
       ),
       body: switch (state) {
         FeedLoading() => Center(
