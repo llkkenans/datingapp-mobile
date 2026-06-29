@@ -249,32 +249,41 @@ class _PostCardState extends ConsumerState<_PostCard>
         if (post.photoUrl != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 4 / 5,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => FullscreenImageViewer(
-                        imageUrl: post.photoUrl!,
-                        heroTag: post.photoUrl!,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FractionallySizedBox(
+                  widthFactor: 0.38,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(
+                      aspectRatio: 4 / 5,
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FullscreenImageViewer(
+                              imageUrl: post.photoUrl!,
+                              heroTag: post.photoUrl!,
+                            ),
+                          ),
+                        ),
+                        child: Hero(
+                          tag: post.photoUrl!,
+                          child: CachedNetworkImage(
+                            imageUrl: post.photoUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) => ColoredBox(
+                                color: cs.surfaceContainerHighest),
+                            errorWidget: (_, _, _) => ColoredBox(
+                                color: cs.surfaceContainerHighest),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  child: Hero(
-                    tag: post.photoUrl!,
-                    child: CachedNetworkImage(
-                      imageUrl: post.photoUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) => ColoredBox(
-                          color: cs.surfaceContainerHighest),
-                      errorWidget: (_, _, _) => ColoredBox(
-                          color: cs.surfaceContainerHighest),
-                    ),
-                  ),
                 ),
-              ),
+                const Expanded(child: SizedBox()),
+              ],
             ),
           ),
 
