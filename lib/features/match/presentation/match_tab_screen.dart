@@ -93,14 +93,35 @@ class _IdleView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 16),
-          Text(
-            'Talk first.\nReveal later.',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface,
-              height: 1.2,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFFFF6B6B), Color(0xFFFF8FA3), Color(0xFFFFB088)],
+                ).createShader(bounds),
+                child: const Text(
+                  'Talk first.',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              Text(
+                'Reveal later.',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
+                  letterSpacing: -0.5,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
