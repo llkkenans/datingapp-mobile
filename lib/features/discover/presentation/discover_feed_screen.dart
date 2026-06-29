@@ -192,6 +192,7 @@ class _PostCardState extends ConsumerState<_PostCard>
     final cs = Theme.of(context).colorScheme;
     final post = widget.post;
     final author = post.author;
+    final imageWidth = (MediaQuery.of(context).size.width - 32) * 0.38;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,10 +231,10 @@ class _PostCardState extends ConsumerState<_PostCard>
           ),
         ),
 
-        // Caption
+        // Caption — left-aligned with username (16 outer + 36 avatar + 10 gap)
         if (post.caption != null && post.caption!.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: const EdgeInsets.fromLTRB(62, 0, 16, 10),
             child: Text(
               post.caption!,
               style: TextStyle(
@@ -252,12 +253,12 @@ class _PostCardState extends ConsumerState<_PostCard>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FractionallySizedBox(
-                  widthFactor: 0.38,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                      aspectRatio: 4 / 5,
+                SizedBox(
+                  width: imageWidth,
+                  child: AspectRatio(
+                    aspectRatio: 4 / 5,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
                       child: GestureDetector(
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
