@@ -70,6 +70,9 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
           ),
         ),
         centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
