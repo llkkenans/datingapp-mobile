@@ -109,6 +109,11 @@ class _IdleView extends StatelessWidget {
             icon: Icons.chat_bubble_outline_rounded,
             title: 'Text Match',
             description: 'Anonymous 3-minute text conversation',
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFF6B6B), Color(0xFFFF8FA3), Color(0xFFFFB088)],
+            ),
             onTap: onStartTextMatch,
           ),
           const SizedBox(height: 16),
@@ -116,6 +121,11 @@ class _IdleView extends StatelessWidget {
             icon: Icons.mic_none_rounded,
             title: 'Voice Match',
             description: 'Anonymous 3-minute voice call',
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0FB88A), Color(0xFF1DD3A6), Color(0xFF6EE7C8)],
+            ),
             onTap: onStartVoiceMatch,
           ),
         ],
@@ -129,61 +139,60 @@ class _MatchTypeCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.description,
+    required this.gradient,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String description;
+  final Gradient gradient;
   final Future<void> Function() onTap;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => onTap(),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: cs.outline),
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(18),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: cs.primary, size: 26),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+                Icon(icon, color: Colors.white, size: 20),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style:
-                        TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            const Text(
+              '3 minutes',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: 16, color: cs.primary),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.75),
+              ),
+            ),
           ],
         ),
       ),
