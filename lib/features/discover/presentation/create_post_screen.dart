@@ -7,13 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../providers/feed_notifier.dart';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const _kBg = Color(0xFF0F0F0F);
-const _kSurface = Color(0xFF1C1C1E);
-const _kAccent = Color(0xFF6C63FF);
-const _kPlaceholder = Color(0xFF2C2C2E);
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 class CreatePostScreen extends ConsumerStatefulWidget {
@@ -67,10 +60,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
+      final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Could not post. Please try again.'),
-          backgroundColor: _kSurface,
+          backgroundColor: cs.surfaceContainerHighest,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -81,37 +75,36 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final username = Supabase.instance.client.auth.currentUser
             ?.userMetadata?['username'] as String? ??
         'you';
 
     return Scaffold(
-      backgroundColor: _kBg,
       appBar: AppBar(
-        backgroundColor: _kBg,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: cs.onSurface, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'New Post',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: cs.onSurface,
           ),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: _isSubmitting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                      color: _kAccent,
+                      color: cs.primary,
                       strokeWidth: 2,
                     ),
                   )
@@ -122,7 +115,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: _hasContent ? _kAccent : Colors.white24,
+                        color: _hasContent
+                            ? cs.primary
+                            : cs.onSurfaceVariant.withValues(alpha: 0.4),
                       ),
                     ),
                   ),
@@ -137,14 +132,14 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             // Author preview row
             Row(
               children: [
-                const _AvatarPlaceholder(size: 40),
+                _AvatarPlaceholder(size: 40),
                 const SizedBox(width: 10),
                 Text(
                   '@$username',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: cs.onSurface,
                   ),
                 ),
               ],
@@ -158,17 +153,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               maxLines: null,
               minLines: 3,
               maxLength: 2000,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Colors.white,
+                color: cs.onSurface,
                 height: 1.5,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: "What's on your mind?",
-                hintStyle:
-                    TextStyle(fontSize: 15, color: Colors.white38, height: 1.5),
+                hintStyle: TextStyle(
+                    fontSize: 15,
+                    color: cs.onSurfaceVariant,
+                    height: 1.5),
                 border: InputBorder.none,
-                counterStyle: TextStyle(color: Colors.white24, fontSize: 12),
+                counterStyle: TextStyle(
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+                    fontSize: 12),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -184,10 +183,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: AspectRatio(
                       aspectRatio: 4 / 5,
-                      child: Image.file(
-                        _photoFile!,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.file(_photoFile!, fit: BoxFit.cover),
                     ),
                   ),
                   Positioned(
@@ -199,6 +195,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
+                          // overlay on top of a photo — semantic black is correct
                           color: Colors.black.withValues(alpha: 0.6),
                           shape: BoxShape.circle,
                         ),
@@ -211,7 +208,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               ),
               const SizedBox(height: 16),
             ] else ...[
-              _PhotoPickerArea(onTap: _pickPhoto),
+              _PhotoPickerArea(onTap: _pickPhoto, cs: cs),
               const SizedBox(height: 16),
             ],
           ],
@@ -224,8 +221,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 // ─── Photo picker placeholder ─────────────────────────────────────────────────
 
 class _PhotoPickerArea extends StatelessWidget {
-  const _PhotoPickerArea({required this.onTap});
+  const _PhotoPickerArea({required this.onTap, required this.cs});
   final VoidCallback onTap;
+  final ColorScheme cs;
 
   @override
   Widget build(BuildContext context) {
@@ -235,10 +233,10 @@ class _PhotoPickerArea extends StatelessWidget {
         aspectRatio: 4 / 5,
         child: Container(
           decoration: BoxDecoration(
-            color: _kSurface,
+            color: cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: cs.outline,
               width: 1.5,
             ),
           ),
@@ -249,30 +247,30 @@ class _PhotoPickerArea extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: _kPlaceholder,
+                  color: cs.onSurface.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add_photo_alternate_rounded,
-                  color: Colors.white38,
+                  color: cs.onSurfaceVariant,
                   size: 26,
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
+              Text(
                 'Add a photo',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white54,
+                  color: cs.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Optional · JPEG, PNG, or WebP · max 5 MB',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white24,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -291,6 +289,7 @@ class _AvatarPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final url = Supabase.instance.client.auth.currentUser
         ?.userMetadata?['avatar_url'] as String?;
 
@@ -301,25 +300,27 @@ class _AvatarPlaceholder extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _Fallback(size: size),
+          errorBuilder: (_, _, _) => _Fallback(size: size, cs: cs),
         ),
       );
     }
-    return _Fallback(size: size);
+    return _Fallback(size: size, cs: cs);
   }
 }
 
 class _Fallback extends StatelessWidget {
-  const _Fallback({required this.size});
+  const _Fallback({required this.size, required this.cs});
   final double size;
+  final ColorScheme cs;
 
   @override
   Widget build(BuildContext context) => ClipOval(
         child: Container(
           width: size,
           height: size,
-          color: _kPlaceholder,
-          child: const Icon(Icons.person_rounded, color: Colors.white38, size: 20),
+          color: cs.surfaceContainerHighest,
+          child: Icon(Icons.person_rounded,
+              color: cs.onSurfaceVariant, size: 20),
         ),
       );
 }

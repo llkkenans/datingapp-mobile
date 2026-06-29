@@ -6,13 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/discover_models.dart';
 import '../providers/comments_notifier.dart';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const _kBg = Color(0xFF0F0F0F);
-const _kSurface = Color(0xFF1C1C1E);
-const _kAccent = Color(0xFF6C63FF);
-const _kPlaceholder = Color(0xFF2C2C2E);
-
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 void showCommentsSheet(BuildContext context, {required String postId}) {
@@ -72,6 +65,8 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     ref.listen<CommentsState>(
       commentsNotifierProvider(widget.postId),
       (_, next) {
@@ -79,7 +74,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(next.submitError!),
-              backgroundColor: _kSurface,
+              backgroundColor: cs.surfaceContainerHighest,
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 3),
             ),
@@ -92,9 +87,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
     );
 
     final state = ref.watch(commentsNotifierProvider(widget.postId));
-    final isSubmitting =
-        state is CommentsLoaded && state.isSubmitting;
-
+    final isSubmitting = state is CommentsLoaded && state.isSubmitting;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return DraggableScrollableSheet(
@@ -105,9 +98,10 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
       snapSizes: const [0.60, 0.92],
       builder: (context, sheetScrollCtrl) {
         return Container(
-          decoration: const BoxDecoration(
-            color: _kBg,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             children: [
@@ -118,7 +112,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -130,26 +124,28 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 8, 0),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Comments',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: cs.onSurface,
                       ),
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded,
-                          color: Colors.white54, size: 22),
+                      icon: Icon(Icons.close_rounded,
+                          color: cs.onSurfaceVariant, size: 22),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
               ),
 
-              Divider(height: 1, thickness: 1,
-                  color: Colors.white.withValues(alpha: 0.08)),
+              Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: cs.outline.withValues(alpha: 0.4)),
 
               // Comment list
               Expanded(
@@ -165,10 +161,10 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                 padding: EdgeInsets.only(bottom: bottomInset),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _kBg,
+                    color: cs.surface,
                     border: Border(
                       top: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: cs.outline.withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -186,27 +182,29 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 120),
+                          constraints:
+                              const BoxConstraints(maxHeight: 120),
                           child: TextField(
                             controller: _textCtrl,
                             focusNode: _inputFocus,
                             maxLines: null,
                             keyboardType: TextInputType.multiline,
                             textInputAction: TextInputAction.newline,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white,
+                              color: cs.onSurface,
                             ),
                             decoration: InputDecoration(
                               hintText: 'Add a comment…',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white38,
+                                color: cs.onSurfaceVariant,
                               ),
                               filled: true,
-                              fillColor: _kSurface,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 10),
+                              fillColor: cs.surfaceContainerHighest,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide.none,
@@ -216,15 +214,14 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Send button
                       SizedBox(
                         width: 36,
                         height: 36,
                         child: isSubmitting
-                            ? const Padding(
-                                padding: EdgeInsets.all(8),
+                            ? Padding(
+                                padding: const EdgeInsets.all(8),
                                 child: CircularProgressIndicator(
-                                  color: _kAccent,
+                                  color: cs.primary,
                                   strokeWidth: 2,
                                 ),
                               )
@@ -234,12 +231,14 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                                   Icons.send_rounded,
                                   size: 22,
                                   color: _textCtrl.text.trim().isNotEmpty
-                                      ? _kAccent
-                                      : Colors.white24,
+                                      ? cs.primary
+                                      : cs.onSurfaceVariant
+                                          .withValues(alpha: 0.3),
                                 ),
-                                onPressed: _textCtrl.text.trim().isNotEmpty
-                                    ? _submit
-                                    : null,
+                                onPressed:
+                                    _textCtrl.text.trim().isNotEmpty
+                                        ? _submit
+                                        : null,
                               ),
                       ),
                     ],
@@ -269,34 +268,42 @@ class _CommentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return switch (state) {
-      CommentsLoading() => const Center(
-          child: CircularProgressIndicator(color: _kAccent, strokeWidth: 2),
+      CommentsLoading() => Center(
+          child: CircularProgressIndicator(
+              color: cs.primary, strokeWidth: 2),
         ),
       CommentsError(:final message) => Center(
           child: Text(message,
-              style: const TextStyle(color: Colors.white54, fontSize: 14)),
+              style:
+                  TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
         ),
       CommentsLoaded(:final comments, :final hasMore, :final isLoadingMore) =>
         comments.isEmpty
-            ? const Center(
+            ? Center(
                 child: Text(
                   'No comments yet.\nBe the first!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 14,
+                      height: 1.5),
                 ),
               )
             : ListView.builder(
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: comments.length + (hasMore || isLoadingMore ? 1 : 0),
+                itemCount:
+                    comments.length + (hasMore || isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == comments.length) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                    return Padding(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 16),
                       child: Center(
                         child: CircularProgressIndicator(
-                          color: _kAccent,
+                          color: cs.primary,
                           strokeWidth: 2,
                         ),
                       ),
@@ -321,14 +328,13 @@ class _CommentTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     final currentUserId =
         Supabase.instance.client.auth.currentUser?.id ?? '';
     final isOwn = comment.author.id == currentUserId;
 
     return GestureDetector(
-      onLongPress: isOwn
-          ? () => _confirmDelete(context, ref)
-          : null,
+      onLongPress: isOwn ? () => _confirmDelete(context, ref, cs) : null,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
         child: Row(
@@ -344,18 +350,18 @@ class _CommentTile extends ConsumerWidget {
                     children: [
                       Text(
                         '@${comment.author.username}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: cs.onSurface,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         _formatTimestamp(comment.createdAt),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Colors.white38,
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -363,9 +369,9 @@ class _CommentTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     comment.content,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white,
+                      color: cs.onSurface,
                       height: 1.45,
                     ),
                   ),
@@ -378,29 +384,30 @@ class _CommentTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, ColorScheme cs) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: _kSurface,
-        title: const Text(
+        backgroundColor: cs.surfaceContainerHighest,
+        title: Text(
           'Delete comment?',
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: cs.onSurface, fontSize: 16),
         ),
-        content: const Text(
+        content: Text(
           'This cannot be undone.',
-          style: TextStyle(color: Colors.white54, fontSize: 14),
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Cancel',
+                style: TextStyle(color: cs.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.redAccent)),
+            child:
+                Text('Delete', style: TextStyle(color: cs.error)),
           ),
         ],
       ),
@@ -422,30 +429,36 @@ class _Avatar extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => ClipOval(
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: url != null
-              ? CachedNetworkImage(
-                  imageUrl: url!,
-                  fit: BoxFit.cover,
-                  placeholder: (_, _) =>
-                      const ColoredBox(color: _kPlaceholder),
-                  errorWidget: (_, _, _) => const _AvatarFallback(),
-                )
-              : const _AvatarFallback(),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ClipOval(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: url != null
+            ? CachedNetworkImage(
+                imageUrl: url!,
+                fit: BoxFit.cover,
+                placeholder: (_, _) =>
+                    ColoredBox(color: cs.surfaceContainerHighest),
+                errorWidget: (_, _, _) => _AvatarFallback(cs: cs),
+              )
+            : _AvatarFallback(cs: cs),
+      ),
+    );
+  }
 }
 
 class _AvatarFallback extends StatelessWidget {
-  const _AvatarFallback();
+  const _AvatarFallback({required this.cs});
+  final ColorScheme cs;
+
   @override
-  Widget build(BuildContext context) => const ColoredBox(
-        color: _kPlaceholder,
-        child:
-            Center(child: Icon(Icons.person_rounded, color: Colors.white38, size: 18)),
+  Widget build(BuildContext context) => ColoredBox(
+        color: cs.surfaceContainerHighest,
+        child: Center(
+            child: Icon(Icons.person_rounded,
+                color: cs.onSurfaceVariant, size: 18)),
       );
 }
 

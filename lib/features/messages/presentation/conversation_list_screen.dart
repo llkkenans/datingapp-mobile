@@ -7,32 +7,34 @@ import '../data/messages_models.dart';
 import '../providers/conversation_list_notifier.dart';
 import 'chat_detail_screen.dart';
 
+// ─── Online indicator green — semantic signal, not a brand color ──────────────
+const _kOnlineGreen = Color(0xFF34C759);
+
 class ConversationListScreen extends ConsumerWidget {
   const ConversationListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     final state = ref.watch(conversationListNotifierProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
         titleSpacing: 20,
-        title: const Text(
+        title: Text(
           'Messages',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: cs.onSurface,
           ),
         ),
         centerTitle: false,
       ),
       body: switch (state) {
-        ConversationListLoading() => const Center(
+        ConversationListLoading() => Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF6C63FF),
+              color: cs.primary,
               strokeWidth: 2,
             ),
           ),
@@ -43,8 +45,8 @@ class ConversationListScreen extends ConsumerWidget {
                 .refresh(),
           ),
         ConversationListLoaded(:final conversations) => RefreshIndicator(
-            color: const Color(0xFF6C63FF),
-            backgroundColor: const Color(0xFF1C1C1E),
+            color: cs.primary,
+            backgroundColor: cs.surfaceContainerHighest,
             onRefresh: () => ref
                 .read(conversationListNotifierProvider.notifier)
                 .refresh(),
@@ -81,6 +83,7 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final user = conversation.otherUser;
     final last = conversation.lastMessage;
     final hasUnread = conversation.unreadCount > 0;
@@ -94,8 +97,8 @@ class _ConversationTile extends StatelessWidget {
           isOnline: user.isOnline,
         ),
       ),
-      splashColor: Color.fromRGBO(255, 255, 255, 0.04),
-      highlightColor: Color.fromRGBO(255, 255, 255, 0.02),
+      splashColor: cs.onSurface.withValues(alpha: 0.04),
+      highlightColor: cs.onSurface.withValues(alpha: 0.02),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -105,6 +108,7 @@ class _ConversationTile extends StatelessWidget {
               isOnline: user.isOnline,
               fromMatch: conversation.fromMatch,
               unreadCount: conversation.unreadCount,
+              cs: cs,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -118,19 +122,21 @@ class _ConversationTile extends StatelessWidget {
                           '@${user.username}',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight:
-                                hasUnread ? FontWeight.w700 : FontWeight.w600,
-                            color: Colors.white,
+                            fontWeight: hasUnread
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: cs.onSurface,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _formatTimestamp(
-                            conversation.lastMessageAt ?? conversation.createdAt),
-                        style: const TextStyle(
-                            fontSize: 11, color: Colors.white30),
+                        _formatTimestamp(conversation.lastMessageAt ??
+                            conversation.createdAt),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: cs.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -139,7 +145,7 @@ class _ConversationTile extends StatelessWidget {
                     _lastMessagePreview(last),
                     style: TextStyle(
                       fontSize: 13,
-                      color: hasUnread ? Colors.white54 : Colors.white38,
+                      color: cs.onSurfaceVariant,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -192,16 +198,14 @@ class _AvatarStack extends StatelessWidget {
     required this.isOnline,
     required this.fromMatch,
     required this.unreadCount,
+    required this.cs,
   });
 
   final String? url;
   final bool isOnline;
   final bool fromMatch;
   final int unreadCount;
-
-  static const _primary = Color(0xFF6C63FF);
-  static const _onlineGreen = Color(0xFF34C759);
-  static const _bg = Color(0xFF0F0F0F);
+  final ColorScheme cs;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +224,7 @@ class _AvatarStack extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: fromMatch
-                    ? Border.all(color: _primary, width: 1.5)
+                    ? Border.all(color: cs.primary, width: 1.5)
                     : null,
               ),
               child: ClipOval(
@@ -229,16 +233,16 @@ class _AvatarStack extends StatelessWidget {
                         imageUrl: url!,
                         fit: BoxFit.cover,
                         placeholder: (_, _) =>
-                            const ColoredBox(color: Color(0xFF2C2C2E)),
+                            ColoredBox(color: cs.surfaceContainerHighest),
                         errorWidget: (_, _, _) =>
-                            const _AvatarFallback(),
+                            _AvatarFallback(cs: cs),
                       )
-                    : const _AvatarFallback(),
+                    : _AvatarFallback(cs: cs),
               ),
             ),
           ),
 
-          // Online dot — bottom-right corner of the avatar
+          // Online dot
           if (isOnline)
             Positioned(
               bottom: 4,
@@ -247,14 +251,15 @@ class _AvatarStack extends StatelessWidget {
                 width: 11,
                 height: 11,
                 decoration: BoxDecoration(
-                  color: _onlineGreen,
+                  color: _kOnlineGreen,
                   shape: BoxShape.circle,
-                  border: Border.all(color: _bg, width: 2),
+                  // border uses surface so the dot looks separate from avatar
+                  border: Border.all(color: cs.surface, width: 2),
                 ),
               ),
             ),
 
-          // Unread badge — top-right
+          // Unread badge
           if (unreadCount > 0)
             Positioned(
               top: 0,
@@ -263,15 +268,15 @@ class _AvatarStack extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _primary,
+                  color: cs.primary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   unreadCount > 99 ? '99+' : '$unreadCount',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: cs.onPrimary,
                   ),
                 ),
               ),
@@ -283,12 +288,15 @@ class _AvatarStack extends StatelessWidget {
 }
 
 class _AvatarFallback extends StatelessWidget {
-  const _AvatarFallback();
+  const _AvatarFallback({required this.cs});
+  final ColorScheme cs;
+
   @override
-  Widget build(BuildContext context) => const ColoredBox(
-        color: Color(0xFF2C2C2E),
+  Widget build(BuildContext context) => ColoredBox(
+        color: cs.surfaceContainerHighest,
         child: Center(
-          child: Icon(Icons.person_rounded, color: Colors.white38, size: 24),
+          child: Icon(Icons.person_rounded,
+              color: cs.onSurfaceVariant, size: 24),
         ),
       );
 }
@@ -297,26 +305,29 @@ class _AvatarFallback extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
+
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final cs = Theme.of(context).colorScheme;
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.chat_bubble_outline_rounded,
-            size: 56, color: Colors.white12),
-        SizedBox(height: 16),
+            size: 56, color: cs.onSurfaceVariant.withValues(alpha: 0.25)),
+        const SizedBox(height: 16),
         Text(
           'No conversations yet',
           style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: cs.onSurface),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           'Conversations appear here\nafter a mutual match.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Colors.white38, height: 1.5),
+          style: TextStyle(
+              fontSize: 14, color: cs.onSurfaceVariant, height: 1.5),
         ),
       ],
     );
@@ -332,22 +343,20 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             message,
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           TextButton(
             onPressed: onRetry,
-            child: const Text(
-              'Retry',
-              style: TextStyle(color: Color(0xFF6C63FF)),
-            ),
+            child: Text('Retry', style: TextStyle(color: cs.primary)),
           ),
         ],
       ),

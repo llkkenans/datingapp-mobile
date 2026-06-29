@@ -7,13 +7,6 @@ import '../providers/feed_notifier.dart';
 import 'comments_sheet.dart';
 import 'create_post_screen.dart';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const _kBg = Color(0xFF0F0F0F);
-const _kSurface = Color(0xFF1C1C1E);
-const _kAccent = Color(0xFF6C63FF);
-const _kPlaceholder = Color(0xFF2C2C2E);
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 class DiscoverFeedScreen extends ConsumerStatefulWidget {
@@ -47,12 +40,14 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     ref.listen<FeedState>(feedNotifierProvider, (_, next) {
       if (next is FeedLoaded && next.likeError != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.likeError!),
-            backgroundColor: _kSurface,
+            backgroundColor: cs.surfaceContainerHighest,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ),
@@ -64,22 +59,20 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
     final state = ref.watch(feedNotifierProvider);
 
     return Scaffold(
-      backgroundColor: _kBg,
       appBar: AppBar(
-        backgroundColor: _kBg,
         titleSpacing: 20,
-        title: const Text(
+        title: Text(
           'Discover',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: cs.onSurface,
           ),
         ),
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+            icon: Icon(Icons.add_rounded, color: cs.onSurface, size: 26),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CreatePostScreen()),
             ),
@@ -88,9 +81,9 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
         ],
       ),
       body: switch (state) {
-        FeedLoading() => const Center(
+        FeedLoading() => Center(
             child: CircularProgressIndicator(
-              color: _kAccent,
+              color: cs.primary,
               strokeWidth: 2,
             ),
           ),
@@ -100,8 +93,8 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
           ),
         FeedLoaded(:final posts, :final hasMore, :final isLoadingMore) =>
           RefreshIndicator(
-            color: _kAccent,
-            backgroundColor: _kSurface,
+            color: cs.primary,
+            backgroundColor: cs.surfaceContainerHighest,
             onRefresh: () => ref.read(feedNotifierProvider.notifier).refresh(),
             child: posts.isEmpty
                 ? const CustomScrollView(
@@ -122,12 +115,12 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
                           (context, index) {
                             if (index == posts.length) {
                               return hasMore
-                                  ? const Padding(
-                                      padding: EdgeInsets.symmetric(
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
                                           vertical: 24),
                                       child: Center(
                                         child: CircularProgressIndicator(
-                                          color: _kAccent,
+                                          color: cs.primary,
                                           strokeWidth: 2,
                                         ),
                                       ),
@@ -136,7 +129,8 @@ class _DiscoverFeedScreenState extends ConsumerState<DiscoverFeedScreen> {
                             }
                             return _PostCard(post: posts[index]);
                           },
-                          childCount: posts.length + (hasMore || isLoadingMore ? 1 : 0),
+                          childCount: posts.length +
+                              (hasMore || isLoadingMore ? 1 : 0),
                         ),
                       ),
                     ],
@@ -192,6 +186,7 @@ class _PostCardState extends ConsumerState<_PostCard>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final post = widget.post;
     final author = post.author;
 
@@ -211,18 +206,18 @@ class _PostCardState extends ConsumerState<_PostCard>
                   children: [
                     Text(
                       '@${author.username}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       _formatTimestamp(post.createdAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white38,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -238,10 +233,10 @@ class _PostCardState extends ConsumerState<_PostCard>
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: Text(
               post.caption!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
-                color: Colors.white,
+                color: cs.onSurface,
                 height: 1.5,
               ),
             ),
@@ -258,10 +253,10 @@ class _PostCardState extends ConsumerState<_PostCard>
                 child: CachedNetworkImage(
                   imageUrl: post.photoUrl!,
                   fit: BoxFit.cover,
-                  placeholder: (_, _) =>
-                      const ColoredBox(color: _kPlaceholder),
-                  errorWidget: (_, _, _) =>
-                      const ColoredBox(color: _kPlaceholder),
+                  placeholder: (_, _) => ColoredBox(
+                      color: cs.surfaceContainerHighest),
+                  errorWidget: (_, _, _) => ColoredBox(
+                      color: cs.surfaceContainerHighest),
                 ),
               ),
             ),
@@ -272,13 +267,14 @@ class _PostCardState extends ConsumerState<_PostCard>
           padding: const EdgeInsets.fromLTRB(8, 4, 16, 4),
           child: Row(
             children: [
-              // Like button with animation
               ScaleTransition(
                 scale: _heartScale,
                 child: IconButton(
                   icon: Icon(
-                    post.liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                    color: post.liked ? _kAccent : Colors.white38,
+                    post.liked
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: post.liked ? cs.primary : cs.onSurfaceVariant,
                     size: 22,
                   ),
                   onPressed: _onLikeTap,
@@ -288,18 +284,16 @@ class _PostCardState extends ConsumerState<_PostCard>
               if (post.likeCount > 0)
                 Text(
                   '${post.likeCount}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white54,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
               const SizedBox(width: 4),
-
-              // Comment button
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.chat_bubble_outline_rounded,
-                  color: Colors.white38,
+                  color: cs.onSurfaceVariant,
                   size: 20,
                 ),
                 onPressed: () => _onCommentTap(context),
@@ -308,20 +302,19 @@ class _PostCardState extends ConsumerState<_PostCard>
               if (post.commentCount > 0)
                 Text(
                   '${post.commentCount}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white54,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
             ],
           ),
         ),
 
-        // Divider
         Divider(
           height: 1,
           thickness: 1,
-          color: Colors.white.withValues(alpha: 0.06),
+          color: cs.outline.withValues(alpha: 0.4),
         ),
       ],
     );
@@ -337,6 +330,7 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ClipOval(
       child: SizedBox(
         width: size,
@@ -345,22 +339,26 @@ class _Avatar extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: url!,
                 fit: BoxFit.cover,
-                placeholder: (_, _) => const ColoredBox(color: _kPlaceholder),
-                errorWidget: (_, _, _) => const _AvatarFallback(),
+                placeholder: (_, _) =>
+                    ColoredBox(color: cs.surfaceContainerHighest),
+                errorWidget: (_, _, _) => _AvatarFallback(cs: cs),
               )
-            : const _AvatarFallback(),
+            : _AvatarFallback(cs: cs),
       ),
     );
   }
 }
 
 class _AvatarFallback extends StatelessWidget {
-  const _AvatarFallback();
+  const _AvatarFallback({required this.cs});
+  final ColorScheme cs;
+
   @override
-  Widget build(BuildContext context) => const ColoredBox(
-        color: _kPlaceholder,
+  Widget build(BuildContext context) => ColoredBox(
+        color: cs.surfaceContainerHighest,
         child: Center(
-          child: Icon(Icons.person_rounded, color: Colors.white38, size: 20),
+          child: Icon(Icons.person_rounded,
+              color: cs.onSurfaceVariant, size: 20),
         ),
       );
 }
@@ -369,32 +367,37 @@ class _AvatarFallback extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
+
   @override
-  Widget build(BuildContext context) => const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.explore_outlined, size: 56, color: Colors.white12),
-          SizedBox(height: 16),
-          Text(
-            'Nothing here yet',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.explore_outlined,
+            size: 56, color: cs.onSurfaceVariant.withValues(alpha: 0.25)),
+        const SizedBox(height: 16),
+        Text(
+          'Nothing here yet',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: cs.onSurface,
           ),
-          SizedBox(height: 8),
-          Text(
-            'Be the first to share something\nwith the community.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white38,
-              height: 1.5,
-            ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Be the first to share something\nwith the community.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            color: cs.onSurfaceVariant,
+            height: 1.5,
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 }
 
 // ─── Error state ──────────────────────────────────────────────────────────────
@@ -405,26 +408,27 @@ class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              message,
-              style: const TextStyle(color: Colors.white54, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: onRetry,
-              child: const Text(
-                'Retry',
-                style: TextStyle(color: _kAccent),
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            message,
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: onRetry,
+            child: Text('Retry',
+                style: TextStyle(color: cs.primary)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Timestamp helper ─────────────────────────────────────────────────────────
@@ -452,4 +456,3 @@ String _formatTimestamp(DateTime dt) {
   ];
   return '${months[dt.month - 1]} ${dt.day}';
 }
-
