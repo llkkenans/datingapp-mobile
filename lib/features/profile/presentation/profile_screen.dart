@@ -5,15 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/profile.dart';
 import '../providers/profile_notifier.dart';
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
-
-const _bg = Color(0xFF0F0F0F);
-const _surface = Color(0xFF2C2C2E);
-const _border = Color(0xFF3A3A3C);
-const _muted = Color(0xFF8A8A8E);
-const _accent = Color(0xFFC0FF00);
-const _accentBorder = Color(0x66C0FF00); // rgba(192,255,0,0.4)
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 String _genderLabel(String g) => switch (g) {
@@ -39,7 +30,6 @@ class ProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileNotifierProvider);
 
     return Scaffold(
-      backgroundColor: _bg,
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorView(
@@ -59,6 +49,8 @@ class _ProfileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return CustomScrollView(
       slivers: [
         SliverSafeArea(
@@ -73,8 +65,10 @@ class _ProfileBody extends StatelessWidget {
                     label: 'About',
                     child: Text(
                       profile.bio!,
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 15, height: 1.5),
+                      style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontSize: 15,
+                          height: 1.5),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -83,12 +77,12 @@ class _ProfileBody extends StatelessWidget {
                   label: 'Location',
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 15, color: _muted),
+                      Icon(Icons.location_on_outlined,
+                          size: 15, color: cs.onSurfaceVariant),
                       const SizedBox(width: 5),
                       Text(profile.city,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 15)),
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 15)),
                     ],
                   ),
                 ),
@@ -100,8 +94,8 @@ class _ProfileBody extends StatelessWidget {
                         label: 'I am',
                         child: Text(
                           _genderLabel(profile.gender),
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 15),
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 15),
                         ),
                       ),
                     ),
@@ -110,8 +104,8 @@ class _ProfileBody extends StatelessWidget {
                         label: 'Interested in',
                         child: Text(
                           _prefGenderLabel(profile.preferredGender),
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 15),
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 15),
                         ),
                       ),
                     ),
@@ -150,29 +144,26 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                profile.username,
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 38,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.1,
-                ),
-              ),
-            ],
+          child: Text(
+            profile.username,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 38,
+              fontWeight: FontWeight.w700,
+              color: cs.onSurface,
+              height: 1.1,
+            ),
           ),
         ),
         const SizedBox(width: 16),
         CircleAvatar(
           radius: 32,
-          backgroundColor: _surface,
+          backgroundColor: cs.surfaceContainerHighest,
           backgroundImage: profile.avatarUrl != null
               ? NetworkImage(profile.avatarUrl!)
               : null,
@@ -181,9 +172,9 @@ class _Header extends StatelessWidget {
                   profile.username.isNotEmpty
                       ? profile.username[0].toUpperCase()
                       : '?',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 24,
-                      color: Colors.white70,
+                      color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600),
                 )
               : null,
@@ -202,6 +193,8 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
@@ -210,8 +203,8 @@ class _ActionRow extends StatelessWidget {
             icon: const Icon(Icons.edit_outlined, size: 17),
             label: const Text('Edit profile'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: _border),
+              foregroundColor: cs.onSurface,
+              side: BorderSide(color: cs.outline),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
@@ -223,16 +216,14 @@ class _ActionRow extends StatelessWidget {
           width: 48,
           height: 48,
           child: OutlinedButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Settings coming soon')),
-            ),
+            onPressed: () => context.push('/profile/settings'),
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.zero,
-              side: const BorderSide(color: _border),
+              side: BorderSide(color: cs.outline),
               shape: const CircleBorder(),
             ),
-            child: const Icon(Icons.settings_outlined,
-                size: 20, color: _muted),
+            child: Icon(Icons.settings_outlined,
+                size: 20, color: cs.onSurfaceVariant),
           ),
         ),
       ],
@@ -250,15 +241,17 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Colors.white38,
+            color: cs.onSurfaceVariant,
             letterSpacing: 0.8,
           ),
         ),
@@ -278,15 +271,17 @@ class _InterestChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _accentBorder),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
       ),
       child: Text(name,
-          style: const TextStyle(color: _accent, fontSize: 13)),
+          style: TextStyle(color: cs.primary, fontSize: 13)),
     );
   }
 }
@@ -300,14 +295,17 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.wifi_off_outlined, color: Colors.white38, size: 40),
+          Icon(Icons.wifi_off_outlined,
+              color: cs.onSurfaceVariant, size: 40),
           const SizedBox(height: 12),
-          const Text('Could not load profile.',
-              style: TextStyle(color: Colors.white54)),
+          Text('Could not load profile.',
+              style: TextStyle(color: cs.onSurfaceVariant)),
           const SizedBox(height: 12),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
