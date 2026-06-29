@@ -60,7 +60,6 @@ class MatchTabScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
         title: const Text(
           'Match',
@@ -84,25 +83,26 @@ class _IdleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Talk first.\nReveal later.',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: cs.onSurface,
               height: 1.2,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Match anonymously through conversation quality.',
-            style: TextStyle(fontSize: 14, color: Colors.white54),
+            style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 48),
           _MatchTypeCard(
@@ -139,15 +139,15 @@ class _MatchTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => onTap(),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1C1C1E),
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Color.fromRGBO(108, 99, 255, 0.3)),
+          border: Border.all(color: cs.outline),
         ),
         child: Row(
           children: [
@@ -155,10 +155,10 @@ class _MatchTypeCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: Color.fromRGBO(108, 99, 255, 0.15),
+                color: cs.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: primary, size: 26),
+              child: Icon(icon, color: cs.primary, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -167,21 +167,23 @@ class _MatchTypeCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: cs.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: const TextStyle(fontSize: 13, color: Colors.white54),
+                    style:
+                        TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: primary),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 16, color: cs.primary),
           ],
         ),
       ),
@@ -221,7 +223,7 @@ class _SearchingViewState extends State<_SearchingView>
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -244,7 +246,8 @@ class _SearchingViewState extends State<_SearchingView>
                           height: 80 + i * 40.0,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: primary, width: 1.5),
+                            border:
+                                Border.all(color: cs.primary, width: 1.5),
                           ),
                         ),
                       ),
@@ -252,11 +255,11 @@ class _SearchingViewState extends State<_SearchingView>
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(108, 99, 255, 0.2),
+                        color: cs.primary.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.favorite_rounded,
-                          color: primary, size: 32),
+                          color: cs.primary, size: 32),
                     ),
                   ],
                 ),
@@ -266,23 +269,23 @@ class _SearchingViewState extends State<_SearchingView>
           const SizedBox(height: 40),
           Text(
             widget.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Looking for someone to talk to',
-            style: TextStyle(fontSize: 14, color: Colors.white54),
+            style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 48),
           TextButton(
             onPressed: widget.onCancel,
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white54, fontSize: 15),
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 15),
             ),
           ),
         ],
@@ -300,19 +303,20 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.redAccent, size: 52),
+            Icon(Icons.error_outline_rounded,
+                color: cs.error, size: 52),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 15),
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 15),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
