@@ -48,20 +48,17 @@ class MainShell extends StatelessWidget {
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? cs.primary.withValues(alpha: 0.18)
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
+                      child: TweenAnimationBuilder<Color?>(
+                        tween: ColorTween(
+                          begin: selected ? cs.primary : cs.onSurfaceVariant,
+                          end: selected ? cs.primary : cs.onSurfaceVariant,
                         ),
-                        child: Icon(
+                        duration: const Duration(milliseconds: 200),
+                        builder: (context, color, _) => Icon(
                           selected
                               ? _icons[index].filled
                               : _icons[index].outline,
-                          color: selected
-                              ? cs.primary
-                              : cs.onSurfaceVariant,
+                          color: color,
                           size: 24,
                         ),
                       ),
