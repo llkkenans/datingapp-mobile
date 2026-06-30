@@ -184,7 +184,11 @@ class _PostCardState extends ConsumerState<_PostCard>
   }
 
   void _onCommentTap(BuildContext context) {
-    showCommentsSheet(context, postId: widget.post.id);
+    showCommentsSheet(
+      context,
+      postId: widget.post.id,
+      postAuthorId: widget.post.author.id,
+    );
   }
 
   @override

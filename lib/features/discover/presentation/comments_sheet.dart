@@ -8,20 +8,29 @@ import '../providers/comments_notifier.dart';
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
-void showCommentsSheet(BuildContext context, {required String postId}) {
+void showCommentsSheet(
+  BuildContext context, {
+  required String postId,
+  required String postAuthorId,
+}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => CommentsSheet(postId: postId),
+    builder: (_) => CommentsSheet(postId: postId, postAuthorId: postAuthorId),
   );
 }
 
 // ─── Sheet ────────────────────────────────────────────────────────────────────
 
 class CommentsSheet extends ConsumerStatefulWidget {
-  const CommentsSheet({super.key, required this.postId});
+  const CommentsSheet({
+    super.key,
+    required this.postId,
+    required this.postAuthorId,
+  });
   final String postId;
+  final String postAuthorId;
 
   @override
   ConsumerState<CommentsSheet> createState() => _CommentsSheetState();
@@ -151,6 +160,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
               Expanded(
                 child: _CommentList(
                   postId: widget.postId,
+                  postAuthorId: widget.postAuthorId,
                   state: state,
                   scrollController: sheetScrollCtrl,
                 ),
@@ -258,11 +268,13 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
 class _CommentList extends StatelessWidget {
   const _CommentList({
     required this.postId,
+    required this.postAuthorId,
     required this.state,
     required this.scrollController,
   });
 
   final String postId;
+  final String postAuthorId;
   final CommentsState state;
   final ScrollController scrollController;
 
@@ -312,6 +324,7 @@ class _CommentList extends StatelessWidget {
                   return _CommentTile(
                     comment: comments[index],
                     postId: postId,
+                    postAuthorId: postAuthorId,
                   );
                 },
               ),
@@ -322,9 +335,14 @@ class _CommentList extends StatelessWidget {
 // ─── Comment tile ─────────────────────────────────────────────────────────────
 
 class _CommentTile extends ConsumerWidget {
-  const _CommentTile({required this.comment, required this.postId});
+  const _CommentTile({
+    required this.comment,
+    required this.postId,
+    required this.postAuthorId,
+  });
   final DiscoverComment comment;
   final String postId;
+  final String postAuthorId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -332,9 +350,12 @@ class _CommentTile extends ConsumerWidget {
     final currentUserId =
         Supabase.instance.client.auth.currentUser?.id ?? '';
     final isOwn = comment.author.id == currentUserId;
+    final canDelete = isOwn || postAuthorId == currentUserId;
 
     return GestureDetector(
-      onLongPress: isOwn ? () => _confirmDelete(context, ref, cs) : null,
+      onLongPress: canDelete
+          ? () => _confirmDelete(context, ref, cs, isOwnComment: isOwn)
+          : null,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
         child: Row(
@@ -378,6 +399,19 @@ class _CommentTile extends ConsumerWidget {
                 ],
               ),
             ),
+            if (canDelete)
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: cs.onSurfaceVariant,
+                ),
+                onPressed: () =>
+                    _confirmDelete(context, ref, cs, isOwnComment: isOwn),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+              ),
           ],
         ),
       ),
@@ -385,13 +419,21 @@ class _CommentTile extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, WidgetRef ref, ColorScheme cs) async {
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme cs, {
+    required bool isOwnComment,
+  }) async {
+    final title = isOwnComment
+        ? 'Delete comment?'
+        : 'Remove this comment from your post?';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: cs.surfaceContainerHighest,
         title: Text(
-          'Delete comment?',
+          title,
           style: TextStyle(color: cs.onSurface, fontSize: 16),
         ),
         content: Text(
@@ -406,8 +448,10 @@ class _CommentTile extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child:
-                Text('Delete', style: TextStyle(color: cs.error)),
+            child: Text(
+              isOwnComment ? 'Delete' : 'Remove',
+              style: TextStyle(color: cs.error),
+            ),
           ),
         ],
       ),
