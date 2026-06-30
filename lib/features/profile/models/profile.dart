@@ -24,7 +24,7 @@ class Profile {
   List<String> get interestIds => interests.map((i) => i.id).toList();
 
   factory Profile.fromJson(Map<String, dynamic> j) => Profile(
-        id: j['id'] as String,
+        id: j['userId'] as String,
         username: j['username'] as String,
         gender: j['gender'] as String,
         preferredGender: j['preferredGender'] as String,
