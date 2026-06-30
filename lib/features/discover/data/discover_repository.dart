@@ -11,10 +11,13 @@ class DiscoverRepository {
 
   final Dio _dio;
 
-  Future<FeedPage> getFeed({String? before}) async {
+  Future<FeedPage> getFeed({String? before, String? authorId}) async {
+    final params = <String, dynamic>{};
+    if (before != null) params['before'] = before;
+    if (authorId != null) params['authorId'] = authorId;
     final res = await _dio.get<Map<String, dynamic>>(
       '/api/v1/discover/feed',
-      queryParameters: before != null ? {'before': before} : null,
+      queryParameters: params.isNotEmpty ? params : null,
     );
     return FeedPage.fromJson(res.data!);
   }

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../discover/presentation/widgets/post_card.dart';
+import '../../discover/providers/feed_notifier.dart';
+import '../../discover/providers/profile_posts_notifier.dart';
 import '../models/profile.dart';
 import '../providers/profile_notifier.dart';
 
@@ -42,20 +46,86 @@ class ProfileScreen extends ConsumerWidget {
 
 // ─── Body ─────────────────────────────────────────────────────────────────────
 
-class _ProfileBody extends StatelessWidget {
+class _ProfileBody extends ConsumerWidget {
   const _ProfileBody({required this.profile});
 
   final Profile profile;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+
+    // Surface like-errors from profile posts as a SnackBar, then clear them.
+    ref.listen<FeedState>(
+      profilePostsNotifierProvider(profile.id),
+      (_, next) {
+        if (next is FeedLoaded && next.likeError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.likeError!),
+              backgroundColor: cs.surfaceContainerHighest,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          ref
+              .read(profilePostsNotifierProvider(profile.id).notifier)
+              .clearLikeError();
+        }
+      },
+    );
+
+    final postsState = ref.watch(profilePostsNotifierProvider(profile.id));
+
+    // Resolve the posts sliver before building the widget tree.
+    final Widget postsSliver = switch (postsState) {
+      FeedLoading() => SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: CircularProgressIndicator(
+                  color: cs.primary, strokeWidth: 2),
+            ),
+          ),
+        ),
+      FeedError() => SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            child: Text(
+              'Could not load posts.',
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
+            ),
+          ),
+        ),
+      FeedLoaded(:final posts) when posts.isEmpty => SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            child: Text(
+              'No posts yet.',
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
+            ),
+          ),
+        ),
+      FeedLoaded(:final posts) => SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (ctx, i) => PostCard(
+              post: posts[i],
+              onLikeTap: () => ref
+                  .read(profilePostsNotifierProvider(profile.id).notifier)
+                  .toggleLike(posts[i].id),
+            ),
+            childCount: posts.length,
+          ),
+        ),
+    };
 
     return CustomScrollView(
       slivers: [
+        // Profile info — padded 20px each side
         SliverSafeArea(
+          bottom: false,
           sliver: SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _Header(profile: profile),
@@ -126,9 +196,25 @@ class _ProfileBody extends StatelessWidget {
                 ],
                 const SizedBox(height: 32),
                 _ActionRow(profile: profile),
+                const SizedBox(height: 28),
+                // Section label only — post cards follow in the next sliver.
+                _Section(
+                  label: 'Posts',
+                  child: const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 8),
               ]),
             ),
           ),
+        ),
+
+        // Post cards — edge-to-edge so PostCard's own 16px padding isn't doubled.
+        postsSliver,
+
+        // Bottom safe-area padding.
+        const SliverSafeArea(
+          top: false,
+          sliver: SliverPadding(padding: EdgeInsets.only(bottom: 32)),
         ),
       ],
     );
@@ -280,8 +366,7 @@ class _InterestChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
       ),
-      child: Text(name,
-          style: TextStyle(color: cs.primary, fontSize: 13)),
+      child: Text(name, style: TextStyle(color: cs.primary, fontSize: 13)),
     );
   }
 }
