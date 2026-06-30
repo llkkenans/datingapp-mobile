@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../models/browse_profile.dart';
 import '../models/profile.dart';
 
 class ProfileRepository {
@@ -36,5 +37,16 @@ class ProfileRepository {
       queryParameters: {'username': username},
     );
     return response.data['available'] as bool;
+  }
+
+  Future<List<BrowseProfile>> browsePeople({int limit = 20}) async {
+    final response = await _dio.get<List<dynamic>>(
+      '/api/v1/profiles/browse',
+      queryParameters: {'limit': limit},
+    );
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(BrowseProfile.fromJson)
+        .toList();
   }
 }

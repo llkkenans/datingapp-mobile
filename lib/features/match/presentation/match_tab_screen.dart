@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/text_match_notifier.dart';
 import '../providers/voice_match_notifier.dart';
+import '../../profile/models/browse_profile.dart';
+import '../../profile/providers/browse_people_provider.dart';
 
 class MatchTabScreen extends ConsumerWidget {
   const MatchTabScreen({super.key});
@@ -76,7 +78,7 @@ class MatchTabScreen extends ConsumerWidget {
 
 // ─── Idle view ────────────────────────────────────────────────────────────────
 
-class _IdleView extends StatelessWidget {
+class _IdleView extends ConsumerWidget {
   const _IdleView({
     required this.onStartTextMatch,
     required this.onStartVoiceMatch,
@@ -85,7 +87,7 @@ class _IdleView extends StatelessWidget {
   final Future<void> Function() onStartVoiceMatch;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -152,6 +154,8 @@ class _IdleView extends StatelessWidget {
             ),
             onTap: onStartVoiceMatch,
           ),
+          const SizedBox(height: 32),
+          _DiscoverPeopleStrip(browseAsync: ref.watch(browsePeopleProvider)),
         ],
       ),
     );
@@ -242,6 +246,161 @@ class _ExtrudedTitle extends StatelessWidget {
               child: Text(text, style: _style),
             ),
           Text(text, style: _style.copyWith(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Discover people strip ────────────────────────────────────────────────────
+
+class _DiscoverPeopleStrip extends StatelessWidget {
+  const _DiscoverPeopleStrip({required this.browseAsync});
+
+  final AsyncValue<List<BrowseProfile>> browseAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'DISCOVER PEOPLE',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: cs.onSurfaceVariant,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 100,
+          child: switch (browseAsync) {
+            AsyncLoading() => ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: 6,
+                separatorBuilder: (_, i) => const SizedBox(width: 16),
+                itemBuilder: (_, i) => _PersonCardSkeleton(cs: cs),
+              ),
+            AsyncError() => Center(
+                child: Text(
+                  'Could not load people.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            AsyncData(:final value) when value.isEmpty => Center(
+                child: Text(
+                  'No one to discover right now.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            AsyncData(:final value) => ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: value.length,
+                separatorBuilder: (_, i) => const SizedBox(width: 16),
+                itemBuilder: (_, i) => _PersonCard(person: value[i], cs: cs),
+              ),
+            _ => const SizedBox.shrink(),
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _PersonCard extends StatelessWidget {
+  const _PersonCard({required this.person, required this.cs});
+
+  final BrowseProfile person;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {},
+      child: SizedBox(
+        width: 68,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: cs.surfaceContainerHighest,
+              backgroundImage: person.avatarUrl != null
+                  ? NetworkImage(person.avatarUrl!)
+                  : null,
+              child: person.avatarUrl == null
+                  ? Icon(Icons.person_outline,
+                      size: 28, color: cs.onSurfaceVariant)
+                  : null,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              person.username,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: cs.onSurface,
+              ),
+            ),
+            Text(
+              '${person.age}',
+              style: TextStyle(
+                fontSize: 11,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PersonCardSkeleton extends StatelessWidget {
+  const _PersonCardSkeleton({required this.cs});
+
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    final shimmer = cs.surfaceContainerHighest;
+    return SizedBox(
+      width: 68,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(radius: 32, backgroundColor: shimmer),
+          const SizedBox(height: 6),
+          Container(
+            height: 11,
+            width: 48,
+            decoration: BoxDecoration(
+              color: shimmer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            height: 10,
+            width: 24,
+            decoration: BoxDecoration(
+              color: shimmer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
         ],
       ),
     );
