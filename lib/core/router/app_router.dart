@@ -21,6 +21,7 @@ import '../../features/messages/presentation/conversation_list_screen.dart';
 import '../../features/messages/presentation/chat_detail_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
+import '../../features/profile/presentation/profile_detail_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'auth_routing.dart';
@@ -137,6 +138,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final mutualLike = state.extra as VoiceMatchMutualLike;
           return VoiceMatchSuccessScreen(mutualLike: mutualLike);
         },
+      ),
+
+      // ── Public profile detail (pushed from Discover People strip, etc.) ────
+      GoRoute(
+        path: '/users/:userId',
+        name: 'profile-detail',
+        builder: (context, state) => ProfileDetailScreen(
+          userId: state.pathParameters['userId']!,
+        ),
       ),
 
       // ── Bottom navigation shell ────────────────────────────────────────────

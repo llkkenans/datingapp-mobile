@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/browse_profile.dart';
 import '../models/profile.dart';
+import '../models/profile_detail.dart';
 
 class ProfileRepository {
   ProfileRepository(this._dio);
@@ -37,6 +38,23 @@ class ProfileRepository {
       queryParameters: {'username': username},
     );
     return response.data['available'] as bool;
+  }
+
+  Future<ProfileDetail> getProfileDetail(String userId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/v1/profiles/$userId',
+    );
+    return ProfileDetail.fromJson(response.data!);
+  }
+
+  Future<void> sendMessageRequest({
+    required String receiverId,
+    required String content,
+  }) async {
+    await _dio.post<void>(
+      '/api/v1/message-requests',
+      data: {'receiverId': receiverId, 'content': content},
+    );
   }
 
   Future<List<BrowseProfile>> browsePeople({int limit = 20}) async {

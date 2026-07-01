@@ -326,7 +326,7 @@ class _PersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () => context.push('/users/${person.userId}'),
       child: SizedBox(
         width: 68,
         child: Column(
